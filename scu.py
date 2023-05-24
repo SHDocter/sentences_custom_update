@@ -42,6 +42,7 @@ def InputSentences():
     sentence = input("""请输入需要添加的语录内容并按回车确认：
 """)
     item_dict = "" # 留空
+    os.system(f"mkdir {path}/scu")
     f = open(f"{path}/scu/{SentencesFile}", 'r', encoding="utf-8") # 将语言文件写入缓存
     text = f.read() # 读取语言
     f.close() # 关闭语言文件
