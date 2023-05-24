@@ -1,18 +1,18 @@
+import os
 import uuid
 import json
-import paramiko
-from urllib import request
 
-version = "1.0.0"
-LatestVersion = "1.0.0"
+version = "1.1.0"
+LatestVersion = "1.1.0"
 print(f"当前版本：{version} 最新版本：{LatestVersion}")
 
 def Choose():
+    global path
     global choose
     global author
     global SentencesFile
-    url = "http://xxx.com/" # 语录的获取url，需自行修改web服务器配置，脱敏处理，需保留末尾的“/”
-    JsonUrl = "" # 留空
+    path = "/root/sentences/sentences/" # 语录的路径
+    JsonPath = "" # 留空
     choose = input("""
 1.桑吉
 2.羽月
@@ -22,17 +22,17 @@ def Choose():
 
     SentencesFile = ""
     if choose == "1":
-        JsonUrl = url + "a.json" # 语录的获取url
-        request.urlretrieve(JsonUrl,"a_local.json") # 下载语录到根目录
-        SentencesFile = "a.json" # 更新后的语录文件名，建议与服务器上的文件名字保持一致
+        JsonPath = path + "a.json" # 语录文件
+        os.system(f"cp -r {JsonPath} {path}/scu")
+        SentencesFile = "a.json" # 更新后的语录文件名
     elif choose == "2":
-        JsonUrl = url + "b.json"
-        request.urlretrieve(JsonUrl,"b_local.json")
+        JsonPath = path + "b.json"
+        os.system(f"cp -r {JsonPath} {path}/scu")
         SentencesFile = "b.json"
     elif choose == "3":
         author = input("谁说的：") # 获取作者
-        JsonUrl = url + "c.json"
-        request.urlretrieve(JsonUrl,"c_local.json")
+        JsonPath = path + "c.json"
+        os.system(f"cp -r {JsonPath} {path}/scu")
         SentencesFile = "c.json"
     else:
         input("该语录不存在，请检查！")
@@ -42,14 +42,7 @@ def InputSentences():
     sentence = input("""请输入需要添加的语录内容并按回车确认：
 """)
     item_dict = "" # 留空
-    OpenJsonFile = "" # 留空
-    if choose == "1":
-        OpenJsonFile = "a_local.json" # 与上方request的文件名一致
-    if choose == "2":
-        OpenJsonFile = "b_local.json"
-    if choose == "3":
-        OpenJsonFile = "c_local.json"
-    f = open(OpenJsonFile, 'r', encoding="utf-8") # 将语言文件写入缓存
+    f = open(f"{path}/scu/{SentencesFile}", 'r', encoding="utf-8") # 将语言文件写入缓存
     text = f.read() # 读取语言
     f.close() # 关闭语言文件
     content = json.loads(text) # 转为List，List中为字典
@@ -102,27 +95,10 @@ def InputSentences():
 }
     content.append(item_dict) # 将字典追加入列表
 
-    with open(SentencesFile, 'w', encoding="utf-8") as JsonFile:
+    with open(f"{path}/scu/{SentencesFile}", 'w', encoding="utf-8") as JsonFile:
         json.dump(content, JsonFile, indent=4, ensure_ascii=False) # 打开并写入json中，保持4格缩进并避免中文乱码
-
-# 连接远程服务器
-def UpdateSentences():
-# """
-# :param ip: 服务器ip地址
-# :param port: 端口(22)
-# :param user: 用户名
-# :param password: 用户密码
-# :param SentencesFile: 文件路径，需保存至根目录
-# :param SentencesRemotePath: 要上传的文件地址（例：/home/nyawsl/a.json）
-# """
-    SentencesRemotePath = "服务器中语录文件的保存路径" + SentencesFile
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(ip, port, user, password) # 脱敏处理，需自行修改
-    
-    sftp = ssh.open_sftp()
-    sftp.put(SentencesFile, SentencesRemotePath) #通过ssh连接上传文件至服务器
+    os.system(f"cp -r {path}/scu/{SentencesFile} {path}")
+    os.system("/root/hitokoto-api/restart.sh")
 
 Choose()
 InputSentences()
-UpdateSentences()
