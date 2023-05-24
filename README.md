@@ -14,4 +14,7 @@ pm2 startup
 pm2 start ecosystem.config.js --env production
 pm2 save
 ```
-- 
+
+- 运行程序
+
+  `python3 scu.py`
