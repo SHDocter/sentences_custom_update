@@ -2,8 +2,8 @@ import os
 import uuid
 import json
 
-version = "1.1.0"
-LatestVersion = "1.1.0"
+version = "1.2.0"
+LatestVersion = "1.2.0"
 print(f"当前版本：{version} 最新版本：{LatestVersion}")
 
 def Choose():
