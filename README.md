@@ -6,7 +6,7 @@ bot插件扩展，用于快速更新语录库
 
 ## 如何使用
 
-#### `scu_local`
+#### scu_local
 
 - 安装并运行pm2
 
@@ -22,7 +22,7 @@ pm2 save
 
 `python3 scu_local.py`
 
-#### `scu_remote`
+#### scu_remote
 
 - Windows
 
