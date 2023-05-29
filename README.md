@@ -6,7 +6,10 @@ bot插件扩展，用于快速更新语录库
 
 ## 如何使用
 
+#### `scu_local`
+
 - 安装并运行pm2
+
 ```
 cd /root/hitokoto-api
 npm i -g pm2
@@ -17,4 +20,14 @@ pm2 save
 
 - 运行程序
 
-  `python3 scu.py`
+`python3 scu_local.py`
+
+#### `scu_remote`
+
+- Windows
+
+`start.bat` or `scu_remote.exe`
+
+- Linux
+
+`python3 scu_remote.py`
