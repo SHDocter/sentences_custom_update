@@ -16,7 +16,7 @@ def Choose():
     global choose
     global author
     global SentencesFile
-    url = "http://***.com/" # 语录的获取url，需自行修改web服务器配置，脱敏处理，需保留末尾的“/”
+    url = "http://sentence.osttsstudio.ltd:9000/" # 语录的获取url，需自行修改web服务器配置，需保留末尾的“/”
     JsonUrl = "" # 留空
     choose = input("""
 1.桑吉
@@ -80,7 +80,7 @@ def InputSentences():
     "id": f"{id}",
     "uuid": f"{Uuid}",
     "hitokoto": f"{sentence}",
-    "type": "a",
+    "type": "b",
     "from": "羽月ちい",
     "from_who": "羽月ちい",
     "creator": "羽月ちい",
@@ -95,7 +95,7 @@ def InputSentences():
     "id": f"{id}",
     "uuid": f"{Uuid}",
     "hitokoto": f"{sentence}",
-    "type": "a",
+    "type": "c",
     "from": f"{author}", # 填入作者，通过此方式写入双引号
     "from_who": f"{author}",
     "creator": f"{author}",
