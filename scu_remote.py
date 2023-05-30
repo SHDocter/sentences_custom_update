@@ -1,3 +1,4 @@
+import os
 import uuid
 import json
 import socket
@@ -5,12 +6,18 @@ from ftplib import FTP
 from urllib import request
 from ftplib import error_perm
 
-from concurrent.futures import ThreadPoolExecutor
-
-
 version = "1.2.0"
-LatestVersion = "1.2.0"
+LatestVersion = "1.2.1"
 print(f"当前版本：{version} 最新版本：{LatestVersion}")
+
+if os.path.exists("scu_update.exe"):
+    os.remove("scu_update.exe")
+
+if version != LatestVersion:
+    UpdateUrl = "https://qn.nya-wsl.cn/scu/scu_update.exe"
+    print("检测到更新，正在更新中...")
+    request.urlretrieve(UpdateUrl,"scu_update.exe")
+    os.system("scu_update.exe")
 
 def Choose():
     global choose
@@ -35,9 +42,9 @@ def Choose():
         request.urlretrieve(JsonUrl,"b_local.json")
         SentencesFile = "b.json"
     elif choose == "3":
-        author = input("谁说的：") # 获取作者
         JsonUrl = url + "c.json"
         request.urlretrieve(JsonUrl,"c_local.json")
+        author = input("谁说的：") # 获取作者
         SentencesFile = "c.json"
     else:
         input("该语录不存在，请检查！")
@@ -111,7 +118,7 @@ def InputSentences():
         json.dump(content, JsonFile, indent=4, ensure_ascii=False) # 打开并写入json中，保持4格缩进并避免中文乱码
 
 # 连接远程服务器
-host = '' # 脱敏
+host = '150.158.171.157'
 port = 21
 username = '' # 脱敏
 password = '' # 脱敏
