@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![python](https://img.shields.io/badge/Version-1.2.0-cyan) ![python](https://img.shields.io/badge/Python-3.11.0-blue) ![os](https://img.shields.io/badge/OS-All-orange)
+![python](https://img.shields.io/badge/Version-1.2.1-cyan) ![python](https://img.shields.io/badge/Python-3.11.3-blue) ![os](https://img.shields.io/badge/OS-All-orange)
 
 bot插件扩展，用于快速更新语录库
 
@@ -30,4 +30,4 @@ pm2 save
 
 - Linux
 
-`python3 scu_remote.py`
+`python3 scu_remote.py # 因为scu_remote是为Windows设计的，不推荐在Linux中使用>= 1.2.1版本的scu_remote`
