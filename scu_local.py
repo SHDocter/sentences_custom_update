@@ -2,8 +2,8 @@ import os
 import uuid
 import json
 
-version = "1.2.0"
-LatestVersion = "1.2.0"
+version = "v1.2.2"
+LatestVersion = "v1.2.2"
 print(f"当前版本：{version} 最新版本：{LatestVersion}")
 
 def Choose():
@@ -69,7 +69,7 @@ def InputSentences():
     "id": f"{id}",
     "uuid": f"{Uuid}",
     "hitokoto": f"{sentence}",
-    "type": "a",
+    "type": "b",
     "from": "羽月ちい",
     "from_who": "羽月ちい",
     "creator": "羽月ちい",
@@ -84,7 +84,7 @@ def InputSentences():
     "id": f"{id}",
     "uuid": f"{Uuid}",
     "hitokoto": f"{sentence}",
-    "type": "a",
+    "type": "c",
     "from": f"{author}", # 填入作者，通过此方式写入双引号
     "from_who": f"{author}",
     "creator": f"{author}",
