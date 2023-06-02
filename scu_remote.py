@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 import uuid
 import json
 import socket
@@ -7,6 +8,14 @@ import requests
 import datetime
 from urllib import request
 from ftplib import FTP, error_perm
+
+def files(curr_dir = '.', ext = '*.json'):
+    for i in glob.glob(os.path.join(curr_dir, ext)):
+        yield i
+
+def RemoveFiles(dir, ext):
+    for i in files(dir, ext):
+        os.remove(i)
 
 workDir = os.getcwd() + "\\logs"
 if not os.path.exists("logs"):
@@ -30,7 +39,7 @@ class Mylogpetion():
 try:
     if os.path.exists("scu_update.exe"):
         os.remove("scu_update.exe")
-    version = "v1.2.1"
+    version = "v1.2.3"
     LatestVersion = requests.get("https://qn.nya-wsl.cn/scu/version.html").text
     print(f"当前版本：{version} 最新版本：{LatestVersion}")
 
@@ -54,7 +63,7 @@ try:
 
 请选择您所需要添加的语录并输入序号后按回车确认：""")
 
-        SentencesFile = ""
+        SentencesFile = "" # 留空
         if choose == "1":
             JsonUrl = url + "a.json" # 语录的获取url
             request.urlretrieve(JsonUrl,"a_local.json") # 下载语录到根目录
@@ -162,7 +171,7 @@ try:
             sys.exit(AuthError)
         return ftp
 
-    def uploadfile(ftp, localpath):
+    def UploadFile(ftp, localpath):
         """
         上传文件
         :param ftp:
@@ -171,25 +180,31 @@ try:
         :return:
         """
         bufsize = 1024 # 缓冲区大小
-        print("FTP当前路径:", ftp.pwd())
         fp = open(localpath, 'rb')
         res = ftp.storbinary('STOR ' + SentencesFile, fp, bufsize)  # 上传文件
-        if res.find('226') != -1:
-            print('upload file complete', SentencesFile)
-            print("文件列表:", ftp.nlst())
         fp.close()
 
     Choose()
     InputSentences()
 
+    if SentencesFile == "a.json":
+        UploadFileName = "桑吉语录"
+    elif SentencesFile == "b.json":
+        UploadFileName = "羽月语录"
+    elif SentencesFile == "c.json":
+        UploadFileName = "楠桐语录"
     ftp = ftpconnect(host, port, username, password)
     file_list = ftp.nlst()
     print(file_list)
     # 避免提示 ftplib.error_perm: 550 SIZE not allowed in ASCII
     ftp.voidcmd('TYPE I')
-    uploadfile(ftp, SentencesFile) # 上传文件
+    UploadFile(ftp, SentencesFile) # 上传文件
     ftp.close()
-    os.remove("*.json")
+    print("正在删除残留文件...")
+    RemoveFiles('.', '*.json')
+    print("语录系统已收录列表:", ftp.nlst())
+    print(f"上传完成，按下回车结束 | 上传语录：{UploadFileName}")
+    input()
 
 except:
     Mylogpetion() # 输出log
