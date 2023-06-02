@@ -195,14 +195,13 @@ try:
         UploadFileName = "楠桐语录"
     ftp = ftpconnect(host, port, username, password)
     file_list = ftp.nlst()
-    print(file_list)
     # 避免提示 ftplib.error_perm: 550 SIZE not allowed in ASCII
     ftp.voidcmd('TYPE I')
     UploadFile(ftp, SentencesFile) # 上传文件
     ftp.close()
     print("正在删除残留文件...")
     RemoveFiles('.', '*.json')
-    print("语录系统已收录列表:", ftp.nlst())
+    print(f"语录系统已收录列表：{file_list}")
     print(f"上传完成，按下回车结束 | 上传语录：{UploadFileName}")
     input()
 
