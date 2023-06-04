@@ -3,9 +3,11 @@ import sys
 import glob
 import uuid
 import json
+import base64
 import socket
 import requests
 import datetime
+from icon import img
 from tkinter import *
 from urllib import request
 import tkinter.messagebox as tkmb
@@ -193,11 +195,11 @@ def UploadFile(ftp, localpath):
     """
     bufsize = 1024 # 缓冲区大小
     fp = open(localpath, 'rb')
-    res = ftp.storbinary('STOR ' + SentencesFile, fp, bufsize)  # 上传文件
+    ftp.storbinary('STOR ' + SentencesFile, fp, bufsize)  # 上传文件
     fp.close()
 
 try:
-    version = "v1.3.0"
+    version = "v1.3.1"
     LatestVersion = requests.get("https://qn.nya-wsl.cn/scu/version.html").text
 
     if version != LatestVersion:
@@ -209,9 +211,12 @@ try:
         sys.exit("exit code: update") # 防止更新程序异常导致程序继续运行
 
     TestInfo()
+    tmp = open("tmp.ico","wb+")
+    tmp.write(base64.b64decode(img))
+    tmp.close()
     window = Tk()
-    if os.path.exists("Nya-WSL.ico"):
-        window.iconbitmap("Nya-WSL.ico")
+    window.iconbitmap("tmp.ico")
+    os.remove("tmp.ico")
     window.title(f"Nya-WSL | 语录上传系统{version}")
     window.geometry('400x300')
 
