@@ -39,6 +39,7 @@ try:
             sys.stderr.write("read %d\n" % (readsofar,))
 
     os.system("taskkill /F /IM scu_remote.exe")
+    time.sleep(2)
     os.remove("scu_remote.exe")
     time.sleep(2)
     print("正在下载更新...")

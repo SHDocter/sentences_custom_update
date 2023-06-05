@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![python](https://img.shields.io/badge/Version-1.3.0-cyan) ![python](https://img.shields.io/badge/Python-3.11.3-blue) ![os](https://img.shields.io/badge/OS-remote|Windows-orange) ![os](https://img.shields.io/badge/OS-local|All-orange)
+![python](https://img.shields.io/badge/Version-1.4.0-cyan) ![python](https://img.shields.io/badge/Python-3.11.3-blue) ![os](https://img.shields.io/badge/OS-remote|Windows-orange) ![os](https://img.shields.io/badge/OS-local|All-orange)
 
 bot插件扩展，用于快速更新语录库
 
@@ -26,7 +26,7 @@ pm2 save
 
 - Windows
 
-`start.bat` or `scu_remote.exe`
+`scu_remote.exe`
 
 - Linux
 
