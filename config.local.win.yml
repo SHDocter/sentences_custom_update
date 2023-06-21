@@ -1,0 +1,11 @@
+version: "1.4.1"
+server: "https://qn.nya-wsl.cn/scu/" # 末尾的“/”需保留
+host: "150.158.171.157"
+port: 21
+
+Url:
+  sentencesUrl: "http://sentence.osttsstudio.ltd:9000/" # 末尾的“/”需保留
+
+Account:
+  user: "scu"
+  passwd: ""
