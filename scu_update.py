@@ -25,7 +25,7 @@ class Mylogpetion():
         logging.debug(traceback.format_exc())
 
 try:
-    UpdateUrl = "https://qn.nya-wsl.cn/scu/scu_remote_setup.exe" # 获取更新包url
+    UpdateUrl = "https://qn.nya-wsl.cn/scu/scu_remote.exe" # 获取更新包url
 
 # 百分比进度条
     def report(blocknum, blocksize, totalsize):
@@ -48,11 +48,7 @@ try:
     else:
         print("本地未发现scu_remote.exe存在，即将跳过删除强制更新")
     print("正在下载更新...")
-    request.urlretrieve(UpdateUrl,"scu_remote_setup.exe",report) # 下载更新包
-    os.system("scu_remote_setup.exe")
-    if os.path.exists("scu_remote_setup.exe"):
-        print("正在删除安装程序...")
-        os.remove("scu_remote_setup.exe")
-    sys.exit("update is successful")
+    request.urlretrieve(UpdateUrl,"scu_remote.exe",report) # 下载更新包
+    os.system("scu_remote.exe")
 except:
     Mylogpetion() # 输出log

@@ -19,33 +19,57 @@ from ftplib import FTP, error_perm
 from assets import ico, button_1_64, entry_1_64, entry_2_64, entry_3_64
 # from tkinter import Tk, Canvas, Entry, Button, PhotoImage
 
-if os.path.exists("scu_update.exe"):
-    os.remove("scu_update.exe")
+ConfigFile = "config.local.win.yml"
 
-workDir = os.getcwd() + "\\logs"
-if not os.path.exists("logs"):
-    os.mkdir(workDir)
+if not os.path.exists(ConfigFile):
+    request.urlretrieve("https://qn.nya-wsl.cn/scu/config.server.win.yml","config.local.win.yml")
+with open(ConfigFile, encoding='utf-8') as f: # 读取主配置文件
+    config = yaml.load(f, Loader=yaml.FullLoader) # 转为字典
+
+ConfigVersion = config["configVersion"]
+ConfigServerVersion = requests.get("https://qn.nya-wsl.cn/scu/config_version.html").text
+if ConfigVersion != ConfigServerVersion:
+    tkmb.showinfo(title="Nya-WSL | NWC", message="检测到配置文件更新！即将开始更新！")
+    request.urlretrieve("https://qn.nya-wsl.cn/scu/config.server.win.yml","config.local.win.yml")
+    with open(ConfigFile, encoding='utf-8') as f: # 读取主配置文件
+        config = yaml.load(f, Loader=yaml.FullLoader) # 转为字典
+        ConfigVersion = config["configVersion"]
+    tkmb.showinfo(title="Nya-WSL | NWC", message=f"配置文件更新完成！当前版本为：{ConfigVersion}")
+
+url = config["Url"]["sentencesUrl"] # 语录的获取url，需自行修改web服务器配置
+UpdateFile = config["Path"]["updatePath"]
+LogPath = config["Path"]["logPath"]
+DelJson = config["Path"]["delJson"]
+sentences_a = config["Sentences"]["a"]
+sentences_b = config["Sentences"]["b"]
+sentences_c = config["Sentences"]["c"]
+BgColor = config["UI"]["backgroundColor"]
+Font = config["UI"]["font"]
+if Font == "" or Font == None:
+    Font = "Inter Regular"
+
+os.system(f"taskkill /F /IM {UpdateFile}")
+if os.path.exists(UpdateFile):
+    os.remove(UpdateFile)
+
+WorkDir = os.getcwd() + f"\\{LogPath}"
+if not os.path.exists(LogPath):
+    os.mkdir(WorkDir)
 # 错误处理
-class Mylogpetion():
+class LogPetion():
     def __init__(self):
         import traceback
         import logging
 # logging的基本配置
-        errorTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')  # 获取错误时间
+        DebugTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')  # 获取错误时间
         logging.basicConfig(
-            filename=f'{workDir}\\scu_debug_{errorTime}.txt',              # 当前文件写入位置
+            filename=f'{WorkDir}\\scu_debug_{DebugTime}.txt',              # 当前文件写入位置
             format='%(asctime)s %(levelname)s \n %(message)s',             # 格式化存储的日志格式
             level=logging.DEBUG,
             datefmt='%Y-%m-%d %H:%M:%S'
         )
 # 写入日志
         logging.debug(traceback.format_exc())
-
-ConfigFile = "config.local.win.yml"
-with open(ConfigFile, encoding='utf-8') as f: # 读取主配置文件
-    config = yaml.load(f, Loader=yaml.FullLoader) # 转为字典
-
-url = config["url"]["sentencesUrl"] # 语录的获取url，需自行修改web服务器配置
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(os.getcwd())
@@ -65,7 +89,7 @@ def relative_to_assets(path: str) -> Path:
     Entry3Img.close()
     return ASSETS_PATH / Path(path)
 
-def files(curr_dir = '.', ext = '*.json'):
+def files(curr_dir = '.', ext = DelJson):
     for i in glob.glob(os.path.join(curr_dir, ext)):
         yield i
 
@@ -82,15 +106,15 @@ def UploadSentence():
     JsonUrl = "" # 留空
     SentencesFile = "" # 留空
     JsonName = entry_1.get()
-    if JsonName == "桑吉":
+    if JsonName == sentences_a:
         JsonUrl = url + "a.json" # 语录的获取url
-        request.urlretrieve(JsonUrl,"a_local.json") # 下载语录到根目录
-        SentencesFile = "a.json" # 更新后的语录文件名，建议与服务器上的文件名字保持一致
-    elif JsonName == "羽月":
+        request.urlretrieve(JsonUrl,"a_local.json") # 下载语录到程序目录
+        SentencesFile = "a.json" # 更新后的语录文件名，与服务器上的文件名保持一致
+    elif JsonName == sentences_b:
         JsonUrl = url + "b.json"
         request.urlretrieve(JsonUrl,"b_local.json")
         SentencesFile = "b.json"
-    elif JsonName == "楠桐":
+    elif JsonName == sentences_c:
         JsonUrl = url + "c.json"
         request.urlretrieve(JsonUrl,"c_local.json")
         author = entry_2.get() # 获取作者
@@ -101,35 +125,35 @@ def UploadSentence():
     sentence = entry_3.get()
     item_dict = "" # 留空
     OpenJsonFile = "" # 留空
-    if JsonName == "桑吉":
+    if JsonName == sentences_a:
         if sentence == "":
             SentenceTextError()
         else:
             UploadCheck = tkmb.askyesno(
-            "Continue?",
+            "Nya-WSL | NWC",
             f"是否确认将'{sentence}'上传至{JsonName}语录？\n"
             "如上传了错误的数据请及时与我们联系！")
         if not UploadCheck:
             return
         OpenJsonFile = "a_local.json" # 与上方request的文件名一致
-    if JsonName == "羽月":
+    if JsonName == sentences_b:
         if sentence == "":
             SentenceTextError()
         else:
             UploadCheck = tkmb.askyesno(
-            "Continue?",
+            "Nya-WSL | NWC",
             f"是否确认将'{sentence}'上传至{JsonName}语录？\n"
             "如上传了错误的数据请及时与我们联系！")
         if not UploadCheck:
             return
         OpenJsonFile = "b_local.json"
-    if JsonName == "楠桐":
+    if JsonName == sentences_c:
         if sentence == "":
             SentenceTextError()
         if author == "":
             SentenceAuthorError()
         UploadCheck = tkmb.askyesno(
-            "Continue?",
+            "Nya-WSL | NWC",
             f"是否确认将{author}说的'{sentence}'上传至{JsonName}语录？\n"
             "如上传了错误的数据请及时与我们联系！")
         if not UploadCheck:
@@ -141,13 +165,13 @@ def UploadSentence():
     content = json.loads(text) # 转为List，List中为字典
     id = len(content) + 1 # 获取字典位数并加1的方式自动更新id
     Uuid = str(uuid.uuid4()) # 基于随机数生成uuid，可能会有极小的概率重复
-    if JsonName == "桑吉":
+    if JsonName == sentences_a:
         item_dict = {
     "id": f"{id}", # 新的id，通过此方式写入双引号
     "uuid": f"{Uuid}", # 新的uuid，通过此方式写入双引号
     "hitokoto": f"{sentence}", # 需要添加的语录将填入这里，通过此方式写入双引号
     "type": "a",
-    "from": "资本家聚集地",
+    "from": "桑吉Sage",
     "from_who": "桑吉Sage",
     "creator": "桑吉Sage",
     "creator_uid": "1",
@@ -156,7 +180,7 @@ def UploadSentence():
     "created_at": "1626590063",
     "length": "19"
 } # 需添加的对象
-    elif JsonName == "羽月":
+    elif JsonName == sentences_b:
         item_dict = {
     "id": f"{id}",
     "uuid": f"{Uuid}",
@@ -171,7 +195,7 @@ def UploadSentence():
     "created_at": "1626590063",
     "length": "19"
 }
-    elif JsonName == "楠桐":
+    elif JsonName == sentences_c:
         item_dict = {
     "id": f"{id}",
     "uuid": f"{Uuid}",
@@ -201,27 +225,27 @@ def UploadSentence():
     ftp.voidcmd('TYPE I')
     UploadFile(ftp, SentencesFile) # 上传文件
     ftp.close()
-    RemoveFiles('.', '*.json')
+    RemoveFiles('.', DelJson)
     UploadSuccessful()
 
 def UpdateInfo():
-    tkmb.showinfo(title="版本更新", message="检测到新版本！即将开始更新！")
+    tkmb.showinfo(title="Nya-WSL | NWC", message="检测到新版本！即将开始更新！")
 
 def TestInfo():
     tkmb.showwarning(title="Nya-WSL | NWC", message="该程序目前尚不完善，如有任何问题请与我们联系！")
 
 def SentenceNameError():
-    tkmb.showwarning(title="语录名称错误", message="该语录不存在，请检查！")
+    tkmb.showwarning(title="名称错误", message="该语录不存在，请检查！")
 
 def SentenceTextError():
     tkmb.showwarning(title="语录错误", message="上传内容为空，请检查！")
 
 def SentenceAuthorError():
-    tkmb.showwarning(title="错误", message="作者为空，请检查！")
+    tkmb.showwarning(title="作者错误", message="作者为空，请检查！")
 
 def FtpConnect(host, port, username, password):
     ftp = FTP()
-    ftp.set_debuglevel(2) # 打开调试级别2，显示详细信息
+    ftp.set_debuglevel(2) # 调试级别2
     ftp.encoding = 'utf-8' # 解决中文编码问题，默认是latin-1
     try:
         ftp.connect(host, port)
@@ -251,15 +275,17 @@ def UploadFile(ftp, localpath):
     fp.close()
 
 try:
+    server = config["server"]
     version = config["version"]
-    LatestVersion = requests.get("https://qn.nya-wsl.cn/scu/version.html").text
+    ServerVersion = server + config["Path"]["versionFile"]
+    LatestVersion = requests.get(ServerVersion).text
 
     if version != LatestVersion:
         UpdateInfo()
-        UpdateUrl = "https://qn.nya-wsl.cn/scu/scu_update.exe"
+        UpdateUrl = server + UpdateFile
         print("检测到更新，正在更新中...")
-        request.urlretrieve(UpdateUrl,"scu_update.exe")
-        os.system("scu_update.exe")
+        request.urlretrieve(UpdateUrl, UpdateFile)
+        os.system(UpdateFile)
         sys.exit("exit code: update") # 防止更新程序异常导致程序继续运行
 
     TestInfo()
@@ -273,11 +299,11 @@ try:
     os.remove("tmp.ico")
     window.title(f"Nya-WSL | 语录上传系统{version}")
     window.geometry("400x300")
-    window.configure(bg = "#FFE0E0")
+    window.configure(bg = BgColor)
 
     canvas = Canvas(
         window,
-        bg = "#FFE0E0",
+        bg = BgColor,
         height = 300,
         width = 400,
         bd = 0,
@@ -292,7 +318,7 @@ try:
         anchor="nw",
         text="语录名称",
         fill="#FF8F8F",
-        font=("Inter Regular", 12 * -1)
+        font=(Font, 12 * -1)
     )
 
     canvas.create_text(
@@ -301,7 +327,7 @@ try:
         anchor="nw",
         text="语录内容",
         fill="#FF8F8F",
-        font=("Inter Regular", 12 * -1)
+        font=(Font, 12 * -1)
     )
 
     canvas.create_text(
@@ -310,7 +336,7 @@ try:
         anchor="nw",
         text="语录作者",
         fill="#FF8F8F",
-        font=("Inter Regular", 12 * -1)
+        font=(Font, 12 * -1)
     )
 
     entry_image_1 = PhotoImage(
@@ -394,4 +420,4 @@ try:
     
 
 except:
-    Mylogpetion()
+    LogPetion()
