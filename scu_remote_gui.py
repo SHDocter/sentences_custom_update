@@ -20,6 +20,9 @@ from assets import ico, button_1_64, entry_1_64, entry_2_64, entry_3_64
 # from tkinter import Tk, Canvas, Entry, Button, PhotoImage
 
 ConfigFile = "config.local.win.yml"
+tkmb.showinfo(title="Nya-WSL | NWC",
+              message=f"从v1.4.1开始，scu_remote将会生成配置文件，并且本程序在主窗体创建完成和上传语录后将会删除运行目录下所有的png&json文件，如有将本程序保存在桌面或有其他文件的文件夹的用户，我们由衷希望您能将本程序和'{ConfigFile}'移动到新文件夹中，如不幸发生误删的情况我们深表歉意！\n"
+              "从v1.4.1开始，由官方途径（私下联系我们不在此列）获取的scu_remote均为zip或tar.gz包")
 
 if not os.path.exists(ConfigFile):
     request.urlretrieve("https://qn.nya-wsl.cn/scu/config.server.win.yml","config.local.win.yml")
@@ -231,9 +234,6 @@ def UploadSentence():
 def UpdateInfo():
     tkmb.showinfo(title="Nya-WSL | NWC", message="检测到新版本！即将开始更新！")
 
-def TestInfo():
-    tkmb.showwarning(title="Nya-WSL | NWC", message="该程序目前尚不完善，如有任何问题请与我们联系！")
-
 def SentenceNameError():
     tkmb.showwarning(title="名称错误", message="该语录不存在，请检查！")
 
@@ -276,7 +276,7 @@ def UploadFile(ftp, localpath):
 
 try:
     if config["Account"]["user"] == "" or config["Account"]["passwd"] == "":
-        tkmb.showerror(title="Nya-WSL | NWC", message=f"未在'{ConfigFile}'中检测到账号或密码，请与我们联系！")
+        tkmb.showerror(title="Nya-WSL | NWC", message=f"未在'{ConfigFile}'中检测到账号或密码！")
         sys.exit("Not found user or passwd!")
     server = config["server"]
     version = config["version"]
@@ -290,8 +290,6 @@ try:
         request.urlretrieve(UpdateUrl, UpdateFile)
         os.system(UpdateFile)
         sys.exit("exit code: update") # 防止更新程序异常导致程序继续运行
-
-    TestInfo()
 
     tmp = open("tmp.ico","wb+")
     tmp.write(base64.b64decode(ico))
