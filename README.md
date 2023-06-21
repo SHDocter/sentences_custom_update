@@ -34,16 +34,18 @@ pm2 save
 - Linux
 
 ```
-# 测试环境为ubuntu20.04的默认python版本
+# 未测试
+# 目前版本无法使用，将在后续更新中考虑适配
 
 pip install -r requirements.txt
-python3 scu_remote_cmd.py # 因为scu_remote_gui是为Windows设计的，暂未测试Linux中的可用性，不推荐在Linux中使用scu_remote_gui，且无法在非desktop中运行
+python3 scu_remote_cmd.py # 因为scu_remote_gui是为Windows设计的，不推荐在Linux中使用scu_remote_gui，且无法在非desktop中运行
 ```
 
 - Mac
 
 ```
 # 未测试
+# 目前版本无法使用，将在后续更新中考虑适配
 
 pip install -r requirements.txt
 python3 scu_remote_cmd.py # 因为scu_remote_gui是为Windows设计的，不推荐在Mac中使用scu_remote_gui
