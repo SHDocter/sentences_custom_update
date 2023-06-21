@@ -6,6 +6,7 @@ import sys
 import glob
 import uuid
 import json
+import yaml
 import socket
 import base64
 import requests
@@ -40,6 +41,12 @@ class Mylogpetion():
 # 写入日志
         logging.debug(traceback.format_exc())
 
+ConfigFile = "config.local.win.yml"
+with open(ConfigFile, encoding='utf-8') as f: # 读取主配置文件
+    config = yaml.load(f, Loader=yaml.FullLoader) # 转为字典
+
+url = config["url"]["sentencesUrl"] # 语录的获取url，需自行修改web服务器配置
+
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(os.getcwd())
 
@@ -71,8 +78,7 @@ def UploadSuccessful():
 
 def UploadSentence():
     global JsonName
-    global SentencesFile
-    url = "http://sentence.osttsstudio.ltd:9000/" # 语录的获取url，需自行修改web服务器配置，需保留末尾的“/”
+    global SentencesFile 
     JsonUrl = "" # 留空
     SentencesFile = "" # 留空
     JsonName = entry_1.get()
@@ -93,105 +99,116 @@ def UploadSentence():
         SentenceNameError()
 
     sentence = entry_3.get()
-    if sentence == "":
-        SentenceTextError()
-    else:
-        UploadCheck = tkmb.askyesno(
+    item_dict = "" # 留空
+    OpenJsonFile = "" # 留空
+    if JsonName == "桑吉":
+        if sentence == "":
+            SentenceTextError()
+        else:
+            UploadCheck = tkmb.askyesno(
             "Continue?",
             f"是否确认将'{sentence}'上传至{JsonName}语录？\n"
             "如上传了错误的数据请及时与我们联系！")
         if not UploadCheck:
             return
-        item_dict = "" # 留空
-        OpenJsonFile = "" # 留空
-        if JsonName == "桑吉":
-            OpenJsonFile = "a_local.json" # 与上方request的文件名一致
-        if JsonName == "羽月":
-            OpenJsonFile = "b_local.json"
-        if JsonName == "楠桐":
-            if author == "":
-                SentenceAuthorError()
+        OpenJsonFile = "a_local.json" # 与上方request的文件名一致
+    if JsonName == "羽月":
+        if sentence == "":
+            SentenceTextError()
+        else:
             UploadCheck = tkmb.askyesno(
-                "Continue?",
-                f"是否确认将{author}说的'{sentence}'上传至{JsonName}语录？\n"
-                "如上传了错误的数据请及时与我们联系！")
-            if not UploadCheck:
-                return
-            OpenJsonFile = "c_local.json"
-        f = open(OpenJsonFile, 'r', encoding="utf-8") # 将语言文件写入缓存
-        text = f.read() # 读取语言
-        f.close() # 关闭语言文件
-        content = json.loads(text) # 转为List，List中为字典
-        id = len(content) + 1 # 获取字典位数并加1的方式自动更新id
-        Uuid = str(uuid.uuid4()) # 基于随机数生成uuid，可能会有极小的概率重复
-        if JsonName == "桑吉":
-            item_dict = {
-        "id": f"{id}", # 新的id，通过此方式写入双引号
-        "uuid": f"{Uuid}", # 新的uuid，通过此方式写入双引号
-        "hitokoto": f"{sentence}", # 需要添加的语录将填入这里，通过此方式写入双引号
-        "type": "a",
-        "from": "资本家聚集地",
-        "from_who": "桑吉Sage",
-        "creator": "桑吉Sage",
-        "creator_uid": "1",
-        "reviewer": "1",
-        "commit_from": "web",
-        "created_at": "1626590063",
-        "length": "19"
-    } # 需添加的对象
-        elif JsonName == "羽月":
-            item_dict = {
-        "id": f"{id}",
-        "uuid": f"{Uuid}",
-        "hitokoto": f"{sentence}",
-        "type": "b",
-        "from": "羽月ちい",
-        "from_who": "羽月ちい",
-        "creator": "羽月ちい",
-        "creator_uid": "1",
-        "reviewer": "1",
-        "commit_from": "web",
-        "created_at": "1626590063",
-        "length": "19"
-    }
-        elif JsonName == "楠桐":
-            item_dict = {
-        "id": f"{id}",
-        "uuid": f"{Uuid}",
-        "hitokoto": f"{sentence}",
-        "type": "c",
-        "from": f"{author}", # 填入作者，通过此方式写入双引号
-        "from_who": f"{author}",
-        "creator": f"{author}",
-        "creator_uid": "1",
-        "reviewer": "1",
-        "commit_from": "web",
-        "created_at": "1626590063",
-        "length": "19"
-    }
-        content.append(item_dict) # 将字典追加入列表
+            "Continue?",
+            f"是否确认将'{sentence}'上传至{JsonName}语录？\n"
+            "如上传了错误的数据请及时与我们联系！")
+        if not UploadCheck:
+            return
+        OpenJsonFile = "b_local.json"
+    if JsonName == "楠桐":
+        if sentence == "":
+            SentenceTextError()
+        if author == "":
+            SentenceAuthorError()
+        UploadCheck = tkmb.askyesno(
+            "Continue?",
+            f"是否确认将{author}说的'{sentence}'上传至{JsonName}语录？\n"
+            "如上传了错误的数据请及时与我们联系！")
+        if not UploadCheck:
+            return
+        OpenJsonFile = "c_local.json"
+    f = open(OpenJsonFile, 'r', encoding="utf-8") # 将语言文件写入缓存
+    text = f.read() # 读取语言
+    f.close() # 关闭语言文件
+    content = json.loads(text) # 转为List，List中为字典
+    id = len(content) + 1 # 获取字典位数并加1的方式自动更新id
+    Uuid = str(uuid.uuid4()) # 基于随机数生成uuid，可能会有极小的概率重复
+    if JsonName == "桑吉":
+        item_dict = {
+    "id": f"{id}", # 新的id，通过此方式写入双引号
+    "uuid": f"{Uuid}", # 新的uuid，通过此方式写入双引号
+    "hitokoto": f"{sentence}", # 需要添加的语录将填入这里，通过此方式写入双引号
+    "type": "a",
+    "from": "资本家聚集地",
+    "from_who": "桑吉Sage",
+    "creator": "桑吉Sage",
+    "creator_uid": "1",
+    "reviewer": "1",
+    "commit_from": "web",
+    "created_at": "1626590063",
+    "length": "19"
+} # 需添加的对象
+    elif JsonName == "羽月":
+        item_dict = {
+    "id": f"{id}",
+    "uuid": f"{Uuid}",
+    "hitokoto": f"{sentence}",
+    "type": "b",
+    "from": "羽月ちい",
+    "from_who": "羽月ちい",
+    "creator": "羽月ちい",
+    "creator_uid": "1",
+    "reviewer": "1",
+    "commit_from": "web",
+    "created_at": "1626590063",
+    "length": "19"
+}
+    elif JsonName == "楠桐":
+        item_dict = {
+    "id": f"{id}",
+    "uuid": f"{Uuid}",
+    "hitokoto": f"{sentence}",
+    "type": "c",
+    "from": f"{author}", # 填入作者，通过此方式写入双引号
+    "from_who": f"{author}",
+    "creator": f"{author}",
+    "creator_uid": "1",
+    "reviewer": "1",
+    "commit_from": "web",
+    "created_at": "1626590063",
+    "length": "19"
+}
+    content.append(item_dict) # 将字典追加入列表
 
-        with open(SentencesFile, 'w', encoding="utf-8") as JsonFile:
-            json.dump(content, JsonFile, indent=4, ensure_ascii=False) # 打开并写入json中，保持4格缩进并避免中文乱码
+    with open(SentencesFile, 'w', encoding="utf-8") as JsonFile:
+        json.dump(content, JsonFile, indent=4, ensure_ascii=False) # 打开并写入json中，保持4格缩进并避免中文乱码
 
-        host = '150.158.171.157'
-        port = 21
-        username = 'scu'
-        password = '' # 脱敏
+    host = config["host"]
+    port = config["port"]
+    username = config["Account"]["user"]
+    password = config["Account"]["passwd"]
 
-        ftp = FtpConnect(host, port, username, password)
-        # 避免提示 ftplib.error_perm: 550 SIZE not allowed in ASCII
-        ftp.voidcmd('TYPE I')
-        UploadFile(ftp, SentencesFile) # 上传文件
-        ftp.close()
-        RemoveFiles('.', '*.json')
-        UploadSuccessful()
+    ftp = FtpConnect(host, port, username, password)
+    # 避免提示 ftplib.error_perm: 550 SIZE not allowed in ASCII
+    ftp.voidcmd('TYPE I')
+    UploadFile(ftp, SentencesFile) # 上传文件
+    ftp.close()
+    RemoveFiles('.', '*.json')
+    UploadSuccessful()
 
 def UpdateInfo():
     tkmb.showinfo(title="版本更新", message="检测到新版本！即将开始更新！")
 
 def TestInfo():
-    tkmb.showwarning(title="", message="该程序目前尚不完善，如有任何问题请与我们联系！")
+    tkmb.showwarning(title="Nya-WSL | NWC", message="该程序目前尚不完善，如有任何问题请与我们联系！")
 
 def SentenceNameError():
     tkmb.showwarning(title="语录名称错误", message="该语录不存在，请检查！")
@@ -234,7 +251,7 @@ def UploadFile(ftp, localpath):
     fp.close()
 
 try:
-    version = "v1.4.0"
+    version = config["version"]
     LatestVersion = requests.get("https://qn.nya-wsl.cn/scu/version.html").text
 
     if version != LatestVersion:
