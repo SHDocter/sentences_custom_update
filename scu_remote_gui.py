@@ -21,8 +21,8 @@ from assets import ico, button_1_64, entry_1_64, entry_2_64, entry_3_64
 
 ConfigFile = "config.local.win.yml"
 tkmb.showinfo(title="Nya-WSL | NWC",
-              message=f"从v1.4.1开始，scu_remote将会生成配置文件，并且本程序在主窗体创建完成和上传语录后将会删除运行目录下所有的png&json文件，如有将本程序保存在桌面或有其他文件的文件夹的用户，我们由衷希望您能将本程序和'{ConfigFile}'移动到新文件夹中，如不幸发生误删的情况我们深表歉意！\n"
-              "从v1.4.1开始，由官方途径（私下联系我们不在此列）获取的scu_remote均为zip或tar.gz包")
+              message=f"从v1.4.1开始，scu_remote将下载配置文件，并且本程序在主窗体创建完成和上传语录后将会删除运行目录下所有的png&json文件，如有将本程序保存在桌面或有其他文件的文件夹的用户，我们由衷希望您能将本程序和'{ConfigFile}'移动到新文件夹，如不幸发生误删的情况我们深表歉意！\n"
+              "我们预计将在v1.4.2解决该问题，并考虑采用新的打包方式处理资源文件的问题，但无论如何，我们皆不推荐将本程序保存在桌面或其他文件夹中。")
 
 if not os.path.exists(ConfigFile):
     request.urlretrieve("https://qn.nya-wsl.cn/scu/config.server.win.yml","config.local.win.yml")
@@ -276,7 +276,7 @@ def UploadFile(ftp, localpath):
 
 try:
     if config["Account"]["user"] == "" or config["Account"]["passwd"] == "":
-        tkmb.showerror(title="Nya-WSL | NWC", message=f"未在'{ConfigFile}'中检测到账号或密码！")
+        tkmb.showerror(title="Nya-WSL | NWC", message=f"未在'{ConfigFile}'中检测到账号或密码！如果是初次使用请联系我们获取！")
         sys.exit("Not found user or passwd!")
     server = config["server"]
     version = config["version"]

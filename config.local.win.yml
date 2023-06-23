@@ -16,7 +16,6 @@ Path:
   logPath: "logs"
   delJson: "*.json" # 保持默认，需删除的本地残留语录文件
   versionFile: "version.html" # 保持默认，版本号获取所需
-  
 
 Sentences:
   a: "桑吉" # 可自定义，但保存的语录依然是桑吉语录，下方同理
@@ -26,4 +25,6 @@ Sentences:
 UI:
   # 关于不能自定义初始窗口大小的问题：因为canvas里的每个元素的xy都是写死的，如果改了大小需要重新算位置，避免组件显示错位暂不支持自定义，如有需要可修改源码
   backgroundColor: "#FFE0E0" # 背景颜色
-  font: "Inter Regular" # 测试功能，暂不清楚修改此处是否有效，仅支持本地字体，如有问题留空或保持默认即可
+  fontCustom: true # 未实装
+  font: "Inter Regular" # 测试功能，仅支持本地字体，如有问题留空或保持默认即可,例："Inter Regular" "萝莉体 第二版" "仿宋"
+  CheckFontList: "https://qn.nya-wsl.cn/scu/CheckFontList.exe" # 自定义字体需下载该程序查询支持的字体列表并修改“font”配置
