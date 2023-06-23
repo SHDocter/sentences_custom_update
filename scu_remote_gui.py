@@ -275,9 +275,6 @@ def UploadFile(ftp, localpath):
     fp.close()
 
 try:
-    if config["Account"]["user"] == "" or config["Account"]["passwd"] == "":
-        tkmb.showerror(title="Nya-WSL | NWC", message=f"未在'{ConfigFile}'中检测到账号或密码！如果是初次使用请联系我们获取！")
-        sys.exit("Not found user or passwd!")
     server = config["server"]
     version = config["version"]
     ServerVersion = server + config["Path"]["versionFile"]
@@ -290,6 +287,10 @@ try:
         request.urlretrieve(UpdateUrl, UpdateFile)
         os.system(UpdateFile)
         sys.exit("exit code: update") # 防止更新程序异常导致程序继续运行
+
+    if config["Account"]["user"] == "" or config["Account"]["passwd"] == "":
+        tkmb.showerror(title="Nya-WSL | NWC", message=f"未在'{ConfigFile}'中检测到账号或密码！如果是初次使用请联系我们获取！")
+        sys.exit("Not found user or passwd!")
 
     tmp = open("tmp.ico","wb+")
     tmp.write(base64.b64decode(ico))

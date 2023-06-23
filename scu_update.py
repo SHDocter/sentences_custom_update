@@ -49,6 +49,7 @@ try:
         print("本地未发现scu_remote.exe存在，即将跳过删除强制更新")
     print("正在下载更新...")
     request.urlretrieve(UpdateUrl,"scu_remote.exe",report) # 下载更新包
+    request.urlretrieve("https://qn.nya-wsl.cn/scu/config.server.win.yml","config.local.win.yml")
     os.system("scu_remote.exe")
 except:
     Mylogpetion() # 输出log
