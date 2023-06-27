@@ -28,17 +28,17 @@ __plugin_settings__ = {
 __plugin_type__ = ("语录", 1)
 
 
-UploadSentece = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
+UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 
-@UploadSentece.handle()
+@UploadSentence.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 2:
-        await UploadSentece.finish("参数不完全，请查看订阅帮助...")
+        await UploadSentence.finish("参数不完全，请查看订阅帮助...")
     SentenceName = msg[0]
     
     result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
-    await UploadSentece.send(result)
+    await UploadSentence.send(result)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
         + result
