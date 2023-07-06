@@ -2,9 +2,11 @@ import json
 import uuid
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
+from configs.config import Config
 from nonebot.typing import T_State
 from nonebot.params import CommandArg
+from models.level_user import LevelUser
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
 
 
 __zx_plugin_name__ = "上传语录"
@@ -32,6 +34,14 @@ __plugin_settings__ = {
 }
 __plugin_type__ = ("语录", 1)
 
+__plugin_configs__ = {
+    "SCU_GROUP_LEVEL": {
+        "value": 5,
+        "help": "群内上传语录需要的权限",
+        "default_value": 5,
+        "type": int,
+    },
+}
 
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 
@@ -43,6 +53,16 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 2:
         await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+    if isinstance(event, GroupMessageEvent):
+        if not await LevelUser.check_level(
+            event.user_id,
+            event.group_id,
+            Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
+        ):
+            await UploadSentence.finish(
+                f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
+                at_sender=False
+            )
     SentenceName = msg[0]
     sentence = msg[1]
     if SentenceName in ["楠桐","楠桐语录"]:
@@ -51,18 +71,25 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         except:
             await UploadSentence.finish("作者获取异常！")
 
-    if SentenceName in ["楠桐","楠桐语录"]:
-        if SentenceName == "楠桐":
-            result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
+    if SentenceName in ["桑吉","羽月","楠桐","桑吉语录","羽月语录","楠桐语录"]:
+        if SentenceName in ["楠桐","楠桐语录"]:
+            if SentenceName == "楠桐":
+                result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
+            else:
+                result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
         else:
-            result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
+            if SentenceName in ["桑吉","羽月"]:
+                result = f'已成功将{sentence}上传至{SentenceName}语录'
+            else:
+                result = f'已成功将{sentence}上传至{SentenceName}'
     else:
-        if SentenceName in ["桑吉","羽月"]:
-            result = f'已成功将{sentence}上传至{SentenceName}语录'
-        else:
-            result = f'已成功将{sentence}上传至{SentenceName}'
-    Upload()
-    await UploadSentence.send(result)
+        await UploadSentence.finish("该语录不存在！")
+
+    try:
+        Upload()
+        await UploadSentence.send(result)
+    except:
+        await UploadSentence.finish("发生错误！")
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
         + result
@@ -72,7 +99,6 @@ def Upload():
     path = "/scu/" # 语录的路径
     SentencesFile = "" # 留空
 
-    SentencesFile = ""
     if SentenceName in ["桑吉","桑吉语录"]:
         SentencesFile = path + "a.json" # 语录文件
     elif SentenceName in ["羽月","羽月语录"]:
