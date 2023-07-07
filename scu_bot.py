@@ -71,14 +71,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         except:
             await UploadSentence.finish("作者获取异常！")
 
-    if SentenceName in ["桑吉","羽月","楠桐","桑吉语录","羽月语录","楠桐语录"]:
+    if SentenceName in ["桑吉","羽月","楠桐","小晨","桑吉语录","羽月语录","楠桐语录","小晨语录"]:
         if SentenceName in ["楠桐","楠桐语录"]:
             if SentenceName == "楠桐":
                 result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
             else:
                 result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
         else:
-            if SentenceName in ["桑吉","羽月"]:
+            if SentenceName in ["桑吉","羽月","小晨"]:
                 result = f'已成功将{sentence}上传至{SentenceName}语录'
             else:
                 result = f'已成功将{sentence}上传至{SentenceName}'
@@ -105,6 +105,8 @@ def Upload():
         SentencesFile = path + "b.json"
     elif SentenceName in ["楠桐","楠桐语录"]:
         SentencesFile = path + "c.json"
+    elif SentenceName in ["小晨","小晨语录"]:
+        SentencesFile = path + "d.json"
     else:
         UploadSentence.finish("该语录不存在！")
 
@@ -154,6 +156,21 @@ def Upload():
     "from": f"{author}", # 填入作者，通过此方式写入双引号
     "from_who": f"{author}",
     "creator": f"{author}",
+    "creator_uid": "1",
+    "reviewer": "1",
+    "commit_from": "web",
+    "created_at": "1626590063",
+    "length": "19"
+}
+    elif SentenceName in ["小晨","小晨语录"]:
+        item_dict = {
+    "id": f"{id}",
+    "uuid": f"{Uuid}",
+    "hitokoto": f"{sentence}",
+    "type": "c",
+    "from": "晨于曦Asahi",
+    "from_who": "晨于曦Asahi",
+    "creator": "晨于曦Asahi",
     "creator_uid": "1",
     "reviewer": "1",
     "commit_from": "web",
