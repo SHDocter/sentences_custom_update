@@ -12,9 +12,11 @@ usage：
     指令：
         语录合集
         语录合集十连
+        语录合集 随机
         语录合集 ["查询","查询语录","语录查询"]
 
     查询目前只能查询语录总数
+    随机抽取范围为整个语录
 """.strip()
 __plugin_des__ = "语录合集给你力量"
 __plugin_cmd__ = ["语录合集"]
@@ -55,6 +57,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
         + result
     )
+        elif SentenceCheck in ["随机"]:
+            data = (await AsyncHttpx.get("http://sentence.osttsstudio.ltd:8000", timeout=5)).json()
+            result = f'{data["hitokoto"]}\t | {data["from_who"]} {data["type"]}:{data["id"]}'
+            await quotations.send(result)
+            logger.info(
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
+        + result
+    )
         else:
             await quotations.finish("参数有误，请使用'帮助语录'查看帮助...")
     else:
@@ -64,7 +74,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     for i in range(10):
         data = (await AsyncHttpx.get(url, timeout=5)).json()
-        result = f'{data["hitokoto"]}\t | {data["from_who"]}'
+        result = f'{data["hitokoto"]}\t | {data["from_who"]} {data["type"]}:{data["id"]}'
         await quotations_ten.send(result)
         logger.info(
             f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
