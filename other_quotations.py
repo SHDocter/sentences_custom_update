@@ -5,36 +5,34 @@ from nonebot.typing import T_State
 from nonebot.params import CommandArg
 from utils.http_utils import AsyncHttpx
 
-
-__zx_plugin_name__ = "小晨语录"
+__zx_plugin_name__ = "语录合集"
 __plugin_usage__ = """
 usage：
-    小晨语录
+    语录
     指令：
-        小晨语录
-        小晨语录十连
-        小晨语录 ["查询","查询语录","语录查询"]
+        语录合集
+        语录合集十连
+        语录合集 ["查询","查询语录","语录查询"]
 
     查询目前只能查询语录总数
 """.strip()
-__plugin_des__ = "小晨语录给你力量"
-__plugin_cmd__ = ["小晨语录"]
+__plugin_des__ = "语录合集给你力量"
+__plugin_cmd__ = ["语录合集"]
 __plugin_version__ = 0.1
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["小晨语录", "小晨语录十连"],
+    "cmd": ["语录", "语录十连"],
 }
 __plugin_type__ = ("语录", 1)
 
+quotations = on_command("语录合集", aliases={"语录合集"}, priority=5, block=True)
+quotations_ten = on_command("语录合集十连", aliases={"语录合集十连"}, priority=5, block=True)
 
-quotations = on_command("小晨语录", aliases={"小晨语录"}, priority=5, block=True)
-quotations_ten = on_command("小晨语录十连", aliases={"小晨语录十连"}, priority=5, block=True)
-
-url = "http://sentence.osttsstudio.ltd:8000/?c=d"
-CheckUrl = "http://sentence.osttsstudio.ltd:9000/d.json"
+url = "http://sentence.osttsstudio.ltd:8000/?c=e"
+CheckUrl = "http://sentence.osttsstudio.ltd:9000/e.json"
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
@@ -58,9 +56,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         + result
     )
         else:
-            await quotations.finish("参数有误，请使用'帮助桑吉语录'查看帮助...")
+            await quotations.finish("参数有误，请使用'帮助语录'查看帮助...")
     else:
-        await quotations.finish("参数有误，请使用'帮助桑吉语录'查看帮助...")
+        await quotations.finish("参数有误，请使用'帮助语录'查看帮助...")
 
 @quotations_ten.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):

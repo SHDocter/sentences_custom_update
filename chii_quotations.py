@@ -39,7 +39,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 1:
         data = (await AsyncHttpx.get(url, timeout=5)).json()
-        result = f'{data["hitokoto"]}\t——{data["from_who"]} {data["id"]}'
+        result = f'{data["hitokoto"]}\t | {data["from_who"]} {data["id"]}'
         await quotations.send(result)
         logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
