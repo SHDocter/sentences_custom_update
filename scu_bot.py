@@ -1,3 +1,4 @@
+import os
 import json
 import uuid
 from nonebot import on_command
@@ -87,6 +88,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
 
     try:
         Upload()
+        cmd = "/root/hitokoto-api/restart.sh"
+        os.system(cmd)
         await UploadSentence.send(result)
     except:
         await UploadSentence.finish("发生错误！")
