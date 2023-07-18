@@ -90,7 +90,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         Upload()
         cmd = "/root/hitokoto-api/restart.sh"
         os.system(cmd)
-        await UploadSentence.send(result + " id:" + id)
+        result_id = result + f" id:{id}"
+        await UploadSentence.send(result_id)
     except:
         await UploadSentence.finish("发生错误！")
     logger.info(
