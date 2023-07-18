@@ -90,7 +90,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         Upload()
         cmd = "/root/hitokoto-api/restart.sh"
         os.system(cmd)
-        await UploadSentence.send(result)
+        await UploadSentence.send(result + " id:" + id)
     except:
         await UploadSentence.finish("发生错误！")
     logger.info(
@@ -99,6 +99,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     )
 
 def Upload():
+    global id
     path = "/scu/" # 语录的路径
     SentencesFile = "" # 留空
 
