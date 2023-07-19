@@ -62,16 +62,16 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 2:
         await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
-    if isinstance(event, GroupMessageEvent):
-        if not await LevelUser.check_level(
-            event.user_id,
-            event.group_id,
-            Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
-        ):
-            await UploadSentence.finish(
-                f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
-                at_sender=False
-            )
+    # if isinstance(event, GroupMessageEvent):
+    #     if not await LevelUser.check_level(
+    #         event.user_id,
+    #         event.group_id,
+    #         Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
+    #     ):
+    #         await UploadSentence.finish(
+    #             f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
+    #             at_sender=False
+    #         )
     SentenceName = msg[0]
     sentence = msg[1]
     if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
@@ -113,16 +113,16 @@ ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
 
 @up_img.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    if isinstance(event, GroupMessageEvent):
-        if not await LevelUser.check_level(
-            event.user_id,
-            event.group_id,
-            Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
-        ):
-            await UploadSentence.finish(
-                f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
-                at_sender=False
-        )
+    # if isinstance(event, GroupMessageEvent):
+    #     if not await LevelUser.check_level(
+    #         event.user_id,
+    #         event.group_id,
+    #         Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
+    #     ):
+    #         await UploadSentence.finish(
+    #             f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
+    #             at_sender=False
+    #     )
     img = get_message_img(event.json())
     msg = arg.extract_plain_text().strip().split()
     if not img or not msg:
