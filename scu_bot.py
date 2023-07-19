@@ -1,11 +1,14 @@
 import os
 import json
 import uuid
+import datetime
 from nonebot import on_command
 from services.log import logger
 from configs.config import Config
 from nonebot.typing import T_State
 from nonebot.params import CommandArg
+from utils.utils import get_message_img
+from utils.http_utils import AsyncHttpx
 from models.level_user import LevelUser
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
 
@@ -16,12 +19,16 @@ usage：
     上传语录
     指令：
         上传语录 语录名称 语录内容
-        上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录需要填写作者）
+        上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
+        上传图片 语录名称 [图片]
         
         语录内容不能有空格
+        图片不需要填写作者
+        图片暂不支持使用回复
         
         例：上传语录 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
+        例：上传图片 楠桐 [图片]
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
@@ -31,7 +38,7 @@ __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["上传语录"],
+    "cmd": ["上传语录","上传图片"],
 }
 __plugin_type__ = ("语录", 1)
 
@@ -45,6 +52,7 @@ __plugin_configs__ = {
 }
 
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
+up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 
 @UploadSentence.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
@@ -97,6 +105,52 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
         + result
+    )
+
+up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
+
+ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
+UploadTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+
+@up_img.handle()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    if isinstance(event, GroupMessageEvent):
+        if not await LevelUser.check_level(
+            event.user_id,
+            event.group_id,
+            Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
+        ):
+            await UploadSentence.finish(
+                f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
+                at_sender=False
+        )
+    img = get_message_img(event.json())
+    msg = arg.extract_plain_text().strip().split()
+    if not img or not msg:
+        await up_img.finish(f"格式错误：\n" + __plugin_usage__)
+    img = img[0]
+    ImgName = msg[0]
+    if ImgName in ["楠桐","楠桐语录"]:
+        ScuImgPath = ScuPath + "gay/"
+    elif ImgName in ["桑吉","桑吉语录"]:
+        ScuImgPath = ScuPath + "sage/"
+    elif ImgName in ["羽月","羽月语录"]:
+        ScuImgPath = ScuPath + "chii/"
+    elif ImgName in ["小晨","小晨语录"]:
+        ScuImgPath = ScuPath + "asahi/"
+    elif ImgName in ["语录","语录合集"]:
+        ScuImgPath = ScuPath
+    else:
+        await up_img.finish("该语录不存在！")
+    if not await AsyncHttpx.download_file(
+        img, ScuImgPath + f"{event.user_id}_scu_{UploadTime}.png"
+    ):
+        await up_img.finish("上传图片失败...请稍后再试...")
+
+    await up_img.send("已成功上传图片")
+    logger.info(
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+        f" 已成功上传图片"
     )
 
 def Upload():
