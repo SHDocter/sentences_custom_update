@@ -3,7 +3,10 @@ from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from nonebot.params import CommandArg
+from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
+import os
+import random
 
 __zx_plugin_name__ = "语录合集"
 __plugin_usage__ = """
@@ -14,6 +17,7 @@ usage：
         语录合集十连
         语录合集 随机
         语录合集 ["查询","查询语录","语录查询"]
+        语录合集 ["图片","图","截图"]
 
     查询目前只能查询语录总数
     随机抽取范围为整个语录
@@ -57,6 +61,31 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
         + result
     )
+        elif SentenceCheck in ["图片","图","截图"]:
+            ScuPath = "/home/zhenxun_bot-main/resources/image/scu/other/"
+            length = len(os.listdir(ScuPath))
+            if length == 0:
+                logger.warning(f"图库 '合集' 为空，调用取消！")
+                await quotations.finish("该图库中没有图片噢")
+            index = os.listdir(ScuPath)
+            img = random.choice(index)
+            result = image(ScuPath + str(img))
+            if result:
+                logger.info(
+                    f"发送:" + result,
+                    "发送图片",
+                    event.user_id,
+                    getattr(event, "group_id", None),
+                )
+                await quotations.send(result)
+            else:
+                logger.info(
+                    f"发送失败",
+                    "发送图片",
+                    event.user_id,
+                    getattr(event, "group_id", None),
+                )
+                await quotations.finish(f"发生错误！")
         elif SentenceCheck in ["随机"]:
             data = (await AsyncHttpx.get("http://sentence.osttsstudio.ltd:8000", timeout=5)).json()
             result = f'{data["hitokoto"]} | {data["from_who"]} {data["type"]}:{data["id"]}'
