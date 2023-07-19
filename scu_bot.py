@@ -110,7 +110,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 
 ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
-UploadTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
 @up_img.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
@@ -143,7 +142,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     else:
         await up_img.finish("该语录不存在！")
     if not await AsyncHttpx.download_file(
-        img, ScuImgPath + f"{event.user_id}_scu_{UploadTime}.png"
+        img, ScuImgPath + f"{event.user_id}_scu_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.png"
     ):
         await up_img.finish("上传图片失败...请稍后再试...")
 
