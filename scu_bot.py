@@ -139,7 +139,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     elif ImgName in ["小晨","小晨语录"]:
         ScuImgPath = ScuPath + "asahi/"
     elif ImgName in ["语录","语录合集"]:
-        ScuImgPath = ScuPath
+        ScuImgPath = ScuPath + "other/"
     else:
         await up_img.finish("该语录不存在！")
     if not await AsyncHttpx.download_file(
