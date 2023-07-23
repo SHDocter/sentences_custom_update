@@ -32,7 +32,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = 1.0
+__plugin_version__ = "1.0.5"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
