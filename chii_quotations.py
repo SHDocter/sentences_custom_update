@@ -85,9 +85,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
                 )
                 await quotations.finish(f"发生错误！")
         else:
-            await quotations.finish("参数有误，请使用'帮助桑吉语录'查看帮助...")
+            await quotations.finish("参数有误，请使用'帮助羽月语录'查看帮助...")
     else:
-        await quotations.finish("参数有误，请使用'帮助桑吉语录'查看帮助...")
+        await quotations.finish("参数有误，请使用'帮助羽月语录'查看帮助...")
 
 @quotations_ten.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
