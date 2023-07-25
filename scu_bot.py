@@ -12,7 +12,6 @@ from utils.http_utils import AsyncHttpx
 # from models.level_user import LevelUser
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
 
-
 __zx_plugin_name__ = "上传语录"
 __plugin_usage__ = """
 usage：
@@ -21,6 +20,7 @@ usage：
         上传语录 语录名称 语录内容
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片]
+        查询语录（目前仅能查询语录列表）
         
         语录内容不能有空格
         图片不需要填写作者
@@ -32,13 +32,13 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.5"
+__plugin_version__ = "1.0.6"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["上传语录","上传图片"],
+    "cmd": ["上传语录","上传图片","查询语录"],
 }
 __plugin_type__ = ("语录", 1)
 
@@ -53,9 +53,16 @@ __plugin_configs__ = {
 
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
+CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
+
+@CheckSentences.handle()
+async def _():
+    SentencesList = "桑吉语录 羽月语录 楠桐语录 小晨语录 语录合集"
+    result = f"已收录语录：{SentencesList}"
+    await CheckSentences.send(result)
 
 @UploadSentence.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+async def _(event: MessageEvent, arg: Message = CommandArg()):
     global SentenceName
     global sentence
     global author
