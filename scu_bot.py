@@ -19,20 +19,19 @@ usage：
     指令：
         上传语录 语录名称 语录内容
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
-        上传图片 语录名称 [图片]
+        上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
         查询语录（目前仅能查询语录列表）
         
         语录内容不能有空格
         图片不需要填写作者
-        图片暂不支持使用回复
         
         例：上传语录 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
-        例：上传图片 楠桐 [图片]
+        例：上传图片 楠桐 [图片] | [回复] 上传图片 楠桐
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.6"
+__plugin_version__ = "1.0.7"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -132,9 +131,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     #     )
     img = get_message_img(event.json())
     msg = arg.extract_plain_text().strip().split()
-    if not img or not msg:
-        await up_img.finish(f"格式错误：\n" + __plugin_usage__)
-    img = img[0]
+    if not event.reply:
+        if not img or not msg:
+            await up_img.finish(f"格式错误：\n" + __plugin_usage__)
+        img = img[0]
     ImgName = msg[0]
     if ImgName in ["楠桐","楠桐语录"]:
         ScuImgPath = ScuPath + "gay/"
@@ -148,10 +148,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         ScuImgPath = ScuPath + "other/"
     else:
         await up_img.finish("该语录不存在！")
-    if not await AsyncHttpx.download_file(
-        img, ScuImgPath + f"{event.user_id}_scu_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.png"
+    if not event.reply:
+        if not await AsyncHttpx.download_file(
+            img, ScuImgPath + f"{event.user_id}_scu_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.png"
+        ):
+            await up_img.finish("上传图片失败...请稍后再试...")
+    elif event.reply:
+        ImgJson = get_message_img(event.reply.json())
+        img = ImgJson[0]
+        if not await AsyncHttpx.download_file(
+            img, ScuImgPath + f"{event.user_id}_scu_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.png"
     ):
-        await up_img.finish("上传图片失败...请稍后再试...")
+            await up_img.finish("上传图片失败...请稍后再试...(回复错误)")
 
     await up_img.send("已成功上传图片")
     logger.info(

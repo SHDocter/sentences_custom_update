@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.0.6-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.0.7-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库，没有第三方库无需安装依赖
 
@@ -15,6 +15,12 @@ bot插件扩展，用于快速更新语录库，没有第三方库无需安装�
 - 发送语录支持图片，通过random函数随机抽取
 
 - 修改语录合集上传的图片和其他语录一样为单独的路径避免产生未知的bug
+
+#### 1.0.7 | 2023.7.26
+
+##### add：
+
+- 上传图片支持回复 ![example1](example1.jpg)
 
 #### 1.0.6 | 2023.7.25
 
