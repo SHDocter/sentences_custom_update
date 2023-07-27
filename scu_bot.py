@@ -7,7 +7,7 @@ from services.log import logger
 # from configs.config import Config
 from nonebot.typing import T_State
 from nonebot.params import CommandArg
-from utils.utils import get_message_img
+from utils.utils import get_message_img, get_message_text
 from utils.http_utils import AsyncHttpx
 # from models.level_user import LevelUser
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
@@ -18,12 +18,14 @@ usage：
     上传语录
     指令：
         上传语录 语录名称 语录内容
+        [回复] 上传语录 语录名称
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
         查询语录（目前仅能查询语录列表）
         
         语录内容不能有空格
         图片不需要填写作者
+        回复不需要填写作者，默认为群名称
         
         例：上传语录 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
@@ -31,7 +33,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.7"
+__plugin_version__ = "1.0.8"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -66,52 +68,91 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     global sentence
     global author
     msg = arg.extract_plain_text().strip().split()
-    if len(msg) < 2:
-        await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
-    # if isinstance(event, GroupMessageEvent):
-    #     if not await LevelUser.check_level(
-    #         event.user_id,
-    #         event.group_id,
-    #         Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
-    #     ):
-    #         await UploadSentence.finish(
-    #             f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
-    #             at_sender=False
-    #         )
     SentenceName = msg[0]
-    sentence = msg[1]
-    if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
-        try:
-            author = msg[2]
-        except:
-            await UploadSentence.finish("作者获取异常！")
+    if event.reply:
+        reply = json.loads(event.reply.json())
+        sentence = get_message_text(event.reply.json())
+        if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
+            try:
+                author = reply["sender"]["nickname"]
+            except:
+                await UploadSentence.finish("作者获取异常！")
+            if author == "小丑竟是我自己":
+                author = "桑吉Sage"
+            elif author == "冰蓝艾思博录":
+                author = "毕方"
 
-    if SentenceName in ["桑吉","羽月","楠桐","小晨","语录","桑吉语录","羽月语录","楠桐语录","小晨语录","语录合集"]:
-        if SentenceName in ["楠桐","楠桐语录","语录","语录合集"]:
-            if SentenceName in ["楠桐","语录"]:
-                result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
+        if SentenceName in ["桑吉","羽月","楠桐","小晨","语录","桑吉语录","羽月语录","楠桐语录","小晨语录","语录合集"]:
+            if SentenceName in ["楠桐","楠桐语录","语录","语录合集"]:
+                if SentenceName in ["楠桐","语录"]:
+                    result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
+                else:
+                    result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
             else:
-                result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
+                if SentenceName in ["桑吉","羽月","小晨"]:
+                    result = f'已成功将{sentence}上传至{SentenceName}语录'
+                else:
+                    result = f'已成功将{sentence}上传至{SentenceName}'
         else:
-            if SentenceName in ["桑吉","羽月","小晨"]:
-                result = f'已成功将{sentence}上传至{SentenceName}语录'
-            else:
-                result = f'已成功将{sentence}上传至{SentenceName}'
-    else:
-        await UploadSentence.finish("该语录不存在！")
+            await UploadSentence.finish("该语录不存在！")
+        try:
+            Upload()
+            cmd = "/root/hitokoto-api/restart.sh"
+            os.system(cmd)
+            result_id = result + f" id:{id}"
+            await UploadSentence.send(result_id)
+        except:
+            await UploadSentence.finish("发生错误！")
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
+            + result
+        )
+    elif not event.reply:
+        if len(msg) < 2:
+            await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+        # if isinstance(event, GroupMessageEvent):
+        #     if not await LevelUser.check_level(
+        #         event.user_id,
+        #         event.group_id,
+        #         Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
+        #     ):
+        #         await UploadSentence.finish(
+        #             f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
+        #             at_sender=False
+        #         )
+        sentence = msg[1]
+        if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
+            try:
+                author = msg[2]
+            except:
+                await UploadSentence.finish("作者获取异常！")
 
-    try:
-        Upload()
-        cmd = "/root/hitokoto-api/restart.sh"
-        os.system(cmd)
-        result_id = result + f" id:{id}"
-        await UploadSentence.send(result_id)
-    except:
-        await UploadSentence.finish("发生错误！")
-    logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
-        + result
-    )
+        if SentenceName in ["桑吉","羽月","楠桐","小晨","语录","桑吉语录","羽月语录","楠桐语录","小晨语录","语录合集"]:
+            if SentenceName in ["楠桐","楠桐语录","语录","语录合集"]:
+                if SentenceName in ["楠桐","语录"]:
+                    result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
+                else:
+                    result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
+            else:
+                if SentenceName in ["桑吉","羽月","小晨"]:
+                    result = f'已成功将{sentence}上传至{SentenceName}语录'
+                else:
+                    result = f'已成功将{sentence}上传至{SentenceName}'
+        else:
+            await UploadSentence.finish("该语录不存在！")
+
+        try:
+            Upload()
+            cmd = "/root/hitokoto-api/restart.sh"
+            os.system(cmd)
+            result_id = result + f" id:{id}"
+            await UploadSentence.send(result_id)
+        except:
+            await UploadSentence.finish("发生错误！")
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
+            + result
+        )
 
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 

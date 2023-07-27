@@ -9,3 +9,4 @@ git push
 
 cd /root/hitokoto
 git_command
+echo "已执行推送"
