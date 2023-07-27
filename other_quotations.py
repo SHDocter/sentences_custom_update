@@ -101,11 +101,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
 
 @quotations_ten.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
+    data = []
     for i in range(10):
-        data = (await AsyncHttpx.get(url, timeout=5)).json()
-        result = f'{data["hitokoto"]} | {data["from_who"]} {data["type"]}:{data["id"]}'
-        await quotations_ten.send(result)
-        logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
-            + result
-        )
+        text = (await AsyncHttpx.get(url, timeout=5)).json()
+        hitokoto = f'{text["hitokoto"]} | {text["from_who"]} {text["id"]}\n'
+        data.append(hitokoto)
+    result = data
+    await quotations_ten.send(result)
+    logger.info(
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
+        + str(result)
+    )
