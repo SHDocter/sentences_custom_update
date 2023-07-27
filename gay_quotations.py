@@ -94,7 +94,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     data = []
     for i in range(10):
         text = (await AsyncHttpx.get(url, timeout=5)).json()
-        hitokoto = f'{text["hitokoto"]} | {text["from_who"]} {text["id"]}\n'
+        hitokoto = f'〔c{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}\n'
         data.append(hitokoto)
     result = data
     await quotations_ten.send(result)
