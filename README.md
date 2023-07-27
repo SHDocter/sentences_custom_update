@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.0.7-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.0.8-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库，没有第三方库无需安装依赖
 
@@ -15,6 +15,16 @@ bot插件扩展，用于快速更新语录库，没有第三方库无需安装�
 - 发送语录支持图片，通过random函数随机抽取
 
 - 修改语录合集上传的图片和其他语录一样为单独的路径避免产生未知的bug
+
+#### 1.0.8 | 2023.7.27
+
+- 上传语录支持回复，回复不需要填写作者，默认为群名称
+
+例外：
+”小丑竟是我自己“=”桑吉Sage“
+“冰蓝艾思博录”=“毕方”
+
+- 修复因为服务器在中国大陆导致的github无法推送使bot卡死的问题，现在为每天0点推送
 
 #### 1.0.7 | 2023.7.26
 
