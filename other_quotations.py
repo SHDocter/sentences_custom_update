@@ -6,6 +6,7 @@ from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
 import os
+import json
 import random
 
 __zx_plugin_name__ = "语录合集"
@@ -54,8 +55,25 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     elif len(msg) == 1:
         SentenceCheck = msg[0]
         if SentenceCheck in ["查询","查询语录","语录查询"]:
-            data = (await AsyncHttpx.get(CheckUrl, timeout=5)).json()
-            result = str(len(data))
+            f = open("/root/sentences/sentences/e.json", 'r', encoding="utf-8") # 将语言文件写入缓存
+            text = f.read() # 读取语言
+            f.close() # 关闭语言文件
+            content = json.loads(text) # 转为List，List中为字典
+
+            List = []
+            for _ in content:
+                AuthorList = _["from_who"]
+                List.append(AuthorList)
+            dict = {}
+            for key in List:
+                dict[key] = dict.get(key, 0) + 1
+            NewDict = {}
+            for key,value in dict.items():
+                value = f"{int(value / len(content) * 10000) / 100}%"
+                NewDict[key] = value
+            list = str(dict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
+            percent = str(NewDict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
+            result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}"
             await quotations.send(result)
             logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
@@ -100,7 +118,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         await quotations.finish("参数有误，请使用'帮助语录'查看帮助...")
 
 @quotations_ten.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     data = []
     for i in range(10):
         text = (await AsyncHttpx.get(url, timeout=5)).json()

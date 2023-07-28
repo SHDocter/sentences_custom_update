@@ -90,7 +90,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         await quotations.finish("参数有误，请使用'帮助桑吉语录'查看帮助...")
 
 @quotations_ten.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     data = []
     for i in range(10):
         text = (await AsyncHttpx.get(url, timeout=5)).json()
