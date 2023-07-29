@@ -8,6 +8,7 @@ from utils.http_utils import AsyncHttpx
 import os
 import json
 import random
+import datetime
 
 __zx_plugin_name__ = "楠桐语录"
 __plugin_usage__ = """
@@ -122,8 +123,31 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             c = CountJson.read()
             CountJson.close()
             CountList = json.loads(c)
+            CardDict = {}
+            DrawCount = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
+            for CardKey,CardValue in CountList.items():
+                CardValue = f"{int(CardValue / DrawCount * 10000) / 100}"
+                CardDict[CardKey] = f"{CardValue}%"
+            DrawPercent = str(CardDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             CardCount = str(CountList).replace("{", "").replace("}", "").replace("'", "").replace(",", "")
-            result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}\n\n卡池：\nN：{n}\nR：{r}\nSR：{sr}\nSSR：{ssr}\n\n累计已抽取（2023.7.29 15:00-至今）：{CardCount}"
+            result = f"""语录总数：{str(len(content))}
+
+统计：
+{list}
+
+占比：
+{percent}
+
+卡池：
+N：{n}
+R：{r}
+SR：{sr}
+SSR：{ssr}
+
+累计总数：{DrawCount}
+累计抽卡：{CardCount} 
+累计概率：{DrawPercent}
+统计区间：2023.07.29 15:00 - {datetime.datetime.now().strftime('%Y.%m.%d %H:%M')}"""
             await quotations.send(result)
             logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
