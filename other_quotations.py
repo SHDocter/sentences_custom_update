@@ -91,11 +91,11 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
             ssr = str(ssr).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             if n == "":
                 n = "无"
-            elif r == "":
+            if r == "":
                 r = "无"
-            elif sr == "":
+            if sr == "":
                 sr = "无"
-            elif ssr == "":
+            if ssr == "":
                 ssr = "无"
             result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}\n\n卡池：\nN：{n}\nR：{r}\nSR：{sr}\nSSR：{ssr}"
             await quotations.send(result)
