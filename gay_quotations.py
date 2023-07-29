@@ -40,11 +40,51 @@ url = "http://sentence.osttsstudio.ltd:8000/?c=c"
 CheckUrl = "http://sentence.osttsstudio.ltd:9000/c.json"
 
 @quotations.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+async def _(event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
+    f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将语言文件写入缓存
+    n = []
+    r = []
+    sr = []
+    ssr = []
+    text = f.read() # 读取语言
+    f.close() # 关闭语言文件
+    content = json.loads(text) # 转为List，List中为字典
+    List = []
+    for _ in content:
+        AuthorList = _["from_who"]
+        List.append(AuthorList)
+    dict = {}
+    for key in List:
+        dict[key] = dict.get(key, 0) + 1
+    NewDict = {}
+    for key,value in dict.items():
+        value = f"{int(value / len(content) * 10000) / 100}"
+        NewDict[key] = f"{value}%"
+        if float(value) <= 2.0:
+            ssr.append(key)
+        elif float(value) <= 10.0:
+            sr.append(key)
+        elif float(value) <= 25.0:
+            r.append(key)
+        else:
+            n.append(key)
+    CardPool = n + r + sr + ssr
+
     if len(msg) < 1:
         data = (await AsyncHttpx.get(url, timeout=5)).json()
-        result = f'〔c{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}'
+        card = ""
+        if data["from_who"] in n:
+            card = " | N卡"
+        if data["from_who"] in r:
+            card = " | R卡"
+        if data["from_who"] in sr:
+            card = " | SR卡"
+        if data["from_who"] in ssr:
+            card = " | SSR卡"
+        if data["from_who"] not in CardPool:
+            card = ""
+        result = f'〔c{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
@@ -53,34 +93,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
     elif len(msg) == 1:
         SentenceCheck = msg[0]
         if SentenceCheck in ["查询","查询语录","语录查询"]:
-            f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将语言文件写入缓存
-            n = []
-            r = []
-            sr = []
-            ssr = []
-            text = f.read() # 读取语言
-            f.close() # 关闭语言文件
-            content = json.loads(text) # 转为List，List中为字典
-
-            List = []
-            for _ in content:
-                AuthorList = _["from_who"]
-                List.append(AuthorList)
-            dict = {}
-            for key in List:
-                dict[key] = dict.get(key, 0) + 1
-            NewDict = {}
-            for key,value in dict.items():
-                value = f"{int(value / len(content) * 10000) / 100}"
-                NewDict[key] = f"{value}%"
-                if float(value) <= 2.0:
-                    ssr.append(key)
-                elif float(value) <= 10.0:
-                    sr.append(key)
-                elif float(value) <= 25.0:
-                    r.append(key)
-                else:
-                    n.append(key)
             list = str(dict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
             percent = str(NewDict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
