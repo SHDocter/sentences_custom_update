@@ -145,10 +145,49 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
 @quotations_ten.handle()
 async def _(event: MessageEvent):
+    f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将语言文件写入缓存
+    n = []
+    r = []
+    sr = []
+    ssr = []
+    text = f.read() # 读取语言
+    f.close() # 关闭语言文件
+    content = json.loads(text) # 转为List，List中为字典
+    List = []
+    for _ in content:
+        AuthorList = _["from_who"]
+        List.append(AuthorList)
+    dict = {}
+    for key in List:
+        dict[key] = dict.get(key, 0) + 1
+    NewDict = {}
+    for key,value in dict.items():
+        value = f"{int(value / len(content) * 10000) / 100}"
+        NewDict[key] = f"{value}%"
+        if float(value) <= 2.0:
+            ssr.append(key)
+        elif float(value) <= 10.0:
+            sr.append(key)
+        elif float(value) <= 25.0:
+            r.append(key)
+        else:
+            n.append(key)
+    CardPool = n + r + sr + ssr
     data = []
     for i in range(10):
         text = (await AsyncHttpx.get(url, timeout=5)).json()
-        hitokoto = f'〔c{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}\n'
+        card = ""
+        if text["from_who"] in n:
+            card = " | N卡"
+        if text["from_who"] in r:
+            card = " | R卡"
+        if text["from_who"] in sr:
+            card = " | SR卡"
+        if text["from_who"] in ssr:
+            card = " | SSR卡"
+        if text["from_who"] not in CardPool:
+            card = ""
+        hitokoto = f'〔c{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}\n'
         data.append(hitokoto)
     result = data
     await quotations_ten.send(result)
