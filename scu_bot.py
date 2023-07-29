@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import uuid
 import datetime
@@ -33,7 +34,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.8"
+__plugin_version__ = "1.0.9"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -71,7 +72,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     SentenceName = msg[0]
     if event.reply:
         reply = json.loads(event.reply.json())
-        sentence = get_message_text(event.reply.json())
+        OriginSentence = str(get_message_text(event.reply.json()))
+        strinfo = re.compile(r"\s+")
+        sentence = strinfo.sub(",", OriginSentence)
         if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
             try:
                 author = reply["sender"]["nickname"]
