@@ -56,6 +56,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
         SentenceCheck = msg[0]
         if SentenceCheck in ["查询","查询语录","语录查询"]:
             f = open("/root/sentences/sentences/e.json", 'r', encoding="utf-8") # 将语言文件写入缓存
+            n = []
+            r = []
+            sr = []
+            ssr = []
             text = f.read() # 读取语言
             f.close() # 关闭语言文件
             content = json.loads(text) # 转为List，List中为字典
@@ -69,11 +73,31 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
                 dict[key] = dict.get(key, 0) + 1
             NewDict = {}
             for key,value in dict.items():
-                value = f"{int(value / len(content) * 10000) / 100}%"
-                NewDict[key] = value
+                value = f"{int(value / len(content) * 10000) / 100}"
+                NewDict[key] = f"{value}%"
+                if float(value) <= 2.0:
+                    ssr.append(key)
+                elif float(value) <= 10.0:
+                    sr.append(key)
+                elif float(value) <= 25.0:
+                    r.append(key)
+                else:
+                    n.append(key)
             list = str(dict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
             percent = str(NewDict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
-            result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}"
+            n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
+            r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
+            sr = str(sr).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
+            ssr = str(ssr).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
+            if n == "":
+                n = "无"
+            elif r == "":
+                r = "无"
+            elif sr == "":
+                sr = "无"
+            elif ssr == "":
+                ssr = "无"
+            result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}\n\n卡池：\nN：{n}\nR：{r}\nSR：{sr}\nSSR：{ssr}"
             await quotations.send(result)
             logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
