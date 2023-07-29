@@ -19,7 +19,7 @@ usage：
         楠桐语录 ["查询","查询语录","语录查询"]
         楠桐语录 ["图片","图","截图"]
 
-    查询目前只能查询语录总数
+累计抽卡数统计时间从2023.7.29 15:00开始
 """.strip()
 __plugin_des__ = "楠桐语录给你力量"
 __plugin_cmd__ = ["楠桐语录"]
@@ -71,19 +71,30 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             n.append(key)
     CardPool = n + r + sr + ssr
 
+    CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
+    c = CountJson.read()
+    CountJson.close()
+    CountList = json.loads(c)
+
     if len(msg) < 1:
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         if data["from_who"] in n:
             card = " | N卡"
+            CountList["n"] += 1
         if data["from_who"] in r:
             card = " | R卡"
+            CountList["r"] += 1
         if data["from_who"] in sr:
             card = " | SR卡"
+            CountList["sr"] += 1
         if data["from_who"] in ssr:
             card = " | SSR卡"
+            CountList["ssr"] += 1
         if data["from_who"] not in CardPool:
             card = ""
+        with open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'w',encoding='utf-8') as f:
+            json.dump(CountList, f,ensure_ascii=False)
         result = f'〔c{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
@@ -93,8 +104,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     elif len(msg) == 1:
         SentenceCheck = msg[0]
         if SentenceCheck in ["查询","查询语录","语录查询"]:
-            list = str(dict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
-            percent = str(NewDict).replace("'", "").replace(", ", "\n").replace("{", "").replace("}", "")
+            list = str(dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            percent = str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             sr = str(sr).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
@@ -107,7 +118,12 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 sr = "无"
             if ssr == "":
                 ssr = "无"
-            result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}\n\n卡池：\nN：{n}\nR：{r}\nSR：{sr}\nSSR：{ssr}"
+            CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
+            c = CountJson.read()
+            CountJson.close()
+            CountList = json.loads(c)
+            CardCount = str(CountList).replace("{", "").replace("}", "").replace("'", "").replace(",", "")
+            result = f"语录总数：{str(len(content))}\n\n统计：\n{list}\n\n占比：\n{percent}\n\n卡池：\nN：{n}\nR：{r}\nSR：{sr}\nSSR：{ssr}\n\n累计已抽取（2023.7.29 15:00-至今）：{CardCount}"
             await quotations.send(result)
             logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
@@ -174,22 +190,48 @@ async def _(event: MessageEvent):
             n.append(key)
     CardPool = n + r + sr + ssr
     data = []
+    card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
+
+    CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
+    c = CountJson.read()
+    CountJson.close()
+    CountList = json.loads(c)
+
     for i in range(10):
         text = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         if text["from_who"] in n:
             card = " | N卡"
+            card_n += 1
+            CountList["n"] += 1
+        else:
+            card_n
         if text["from_who"] in r:
             card = " | R卡"
+            card_r += 1
+            CountList["r"] += 1
+        else:
+            card_r
         if text["from_who"] in sr:
             card = " | SR卡"
+            card_sr += 1
+            CountList["sr"] += 1
+        else:
+            card_sr
         if text["from_who"] in ssr:
             card = " | SSR卡"
+            card_ssr += 1
+            CountList["ssr"] += 1
+        else:
+            card_ssr
         if text["from_who"] not in CardPool:
             card = ""
-        hitokoto = f'〔c{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}\n'
+        hitokoto = f'〔c{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
         data.append(hitokoto)
-    result = data
+
+    with open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'w',encoding='utf-8') as f:
+        json.dump(CountList, f,ensure_ascii=False)
+    result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "") + f"\n\n汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"
     await quotations_ten.send(result)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
