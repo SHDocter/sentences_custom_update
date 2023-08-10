@@ -6,6 +6,7 @@ from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
 import os
+import re
 import json
 import random
 import datetime
@@ -55,21 +56,33 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     for _ in content:
         AuthorList = _["from_who"]
         List.append(AuthorList)
-    dict = {}
+    Dict = {}
     for key in List:
-        dict[key] = dict.get(key, 0) + 1
+        Dict[key] = Dict.get(key, 0) + 1
     NewDict = {}
-    for key,value in dict.items():
-        value = f"{int(value / len(content) * 10000) / 100}"
-        NewDict[key] = f"{value}%"
-        if float(value) <= 2.0:
+    n_all = 0
+    r_all = 0
+    sr_all = 0
+    ssr_all = 0
+    for key,value in Dict.items():
+        ValuePercent = f"{int(value / len(content) * 10000) / 100}"
+        NewDict[key] = f"{ValuePercent}%"
+        if float(ValuePercent) <= 2.0:
             ssr.append(key)
-        elif float(value) <= 10.0:
+        elif float(ValuePercent) <= 10.0:
             sr.append(key)
-        elif float(value) <= 25.0:
+        elif float(ValuePercent) <= 25.0:
             r.append(key)
         else:
             n.append(key)
+        if key in n:
+            n_all += int(value)
+        elif key in r:
+            r_all += int(value)
+        elif key in sr:
+            sr_all += int(value)
+        elif key in ssr:
+            ssr_all += int(value)
     CardPool = n + r + sr + ssr
 
     CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
@@ -105,7 +118,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     elif len(msg) == 1:
         SentenceCheck = msg[0]
         if SentenceCheck in ["查询","查询语录","语录查询"]:
-            list = str(dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            list = str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             percent = str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
@@ -139,10 +152,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 {percent}
 
 卡池：
-N：{n}
-R：{r}
-SR：{sr}
-SSR：{ssr}
+N：{n} | {n_all}条
+R：{r} | {r_all}条
+SR：{sr} | {sr_all}条
+SSR：{ssr} | {ssr_all}条
 
 累计总数：{DrawCount}
 累计抽卡：{CardCount} 
@@ -197,11 +210,11 @@ async def _(event: MessageEvent):
     for _ in content:
         AuthorList = _["from_who"]
         List.append(AuthorList)
-    dict = {}
+    Dict = {}
     for key in List:
-        dict[key] = dict.get(key, 0) + 1
+        Dict[key] = Dict.get(key, 0) + 1
     NewDict = {}
-    for key,value in dict.items():
+    for key,value in Dict.items():
         value = f"{int(value / len(content) * 10000) / 100}"
         NewDict[key] = f"{value}%"
         if float(value) <= 2.0:
