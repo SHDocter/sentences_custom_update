@@ -6,7 +6,7 @@ from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
 import os
-import re
+import gc
 import json
 import random
 import datetime
@@ -115,6 +115,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
         + result
     )
+        flush = gc.collect()
+        print(f"已成功清理内存：{flush}")
     elif len(msg) == 1:
         SentenceCheck = msg[0]
         if SentenceCheck in ["查询","查询语录","语录查询"]:
@@ -166,6 +168,8 @@ SSR：{ssr} | {ssr_all}条
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
         + result
     )
+            flush = gc.collect()
+            print(f"已成功清理内存：{flush}")
         elif SentenceCheck in ["图片","图","截图"]:
             ScuPath = "/home/zhenxun_bot-main/resources/image/scu/gay/"
             length = len(os.listdir(ScuPath))
@@ -183,6 +187,8 @@ SSR：{ssr} | {ssr_all}条
                     getattr(event, "group_id", None),
                 )
                 await quotations.send(result)
+                flush = gc.collect()
+                print(f"已成功清理内存：{flush}")
             else:
                 logger.info(
                     f"发送失败",
@@ -191,10 +197,16 @@ SSR：{ssr} | {ssr_all}条
                     getattr(event, "group_id", None),
                 )
                 await quotations.finish(f"发生错误！")
+                flush = gc.collect()
+                print(f"已成功清理内存：{flush}")
         else:
             await quotations.finish("参数有误，请使用'帮助楠桐语录'查看帮助...")
+            flush = gc.collect()
+            print(f"已成功清理内存：{flush}")
     else:
         await quotations.finish("参数有误，请使用'帮助楠桐语录'查看帮助...")
+        flush = gc.collect()
+        print(f"已成功清理内存：{flush}")
 
 @quotations_ten.handle()
 async def _(event: MessageEvent):
@@ -274,3 +286,5 @@ async def _(event: MessageEvent):
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
         + str(result)
     )
+    flush = gc.collect()
+    print(f"已成功清理内存：{flush}")
