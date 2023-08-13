@@ -109,7 +109,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             card = ""
         with open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'w',encoding='utf-8') as f:
             json.dump(CountList, f,ensure_ascii=False)
-        result = f'〔c{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
+        result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
@@ -263,7 +263,7 @@ async def _(event: MessageEvent):
             card_ssr
         if text["from_who"] not in CardPool:
             card = ""
-        hitokoto = f'〔c{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
+        hitokoto = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
         data.append(hitokoto)
 
     with open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'w',encoding='utf-8') as f:
