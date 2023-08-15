@@ -5,6 +5,8 @@ from nonebot.typing import T_State
 from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
+from configs.path_config import DATA_PATH, IMAGE_PATH
+from pathlib import Path
 import os
 import gc
 import json
@@ -41,16 +43,37 @@ quotations_ten = on_command("楠桐语录十连", aliases={"楠桐语录十连"}
 url = "http://sentence.osttsstudio.ltd:8000/?c=c"
 CheckUrl = "http://sentence.osttsstudio.ltd:9000/c.json"
 
+ScuDataPath = DATA_PATH / "scu"
+ScuImagePath = IMAGE_PATH / "scu"
+ScuImageGayPath = ScuImagePath / "gay"
+CardCountPath = ScuDataPath / "card_count.json"
+
+print(ScuImagePath, ScuDataPath, ScuImageGayPath, CardCountPath)
+
+count = {
+    "n": 0,
+    "r": 0,
+    "sr": 0,
+    "ssr": 0
+}
+if not ScuDataPath.exists():
+    os.mkdir(ScuDataPath)
+if not ScuImageGayPath.exists():
+    os.mkdir(ScuImageGayPath)
+if not CardCountPath.exists():
+    with open(CardCountPath, "w", encoding="utf-8") as cc:
+        json.dump(count, cc, ensure_ascii=False)
+
 @quotations.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
-    f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将语言文件写入缓存
+    f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将文件写入缓存
     n = []
     r = []
     sr = []
     ssr = []
-    text = f.read() # 读取语言
-    f.close() # 关闭语言文件
+    text = f.read()
+    f.close() # 关闭文件
     content = json.loads(text) # 转为List，List中为字典
     List = []
     for _ in content:
@@ -85,7 +108,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             ssr_all += int(value)
     CardPool = n + r + sr + ssr
 
-    CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
+    CountJson = open(CardCountPath,'r')
     c = CountJson.read()
     CountJson.close()
     CountList = json.loads(c)
@@ -107,7 +130,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             CountList["ssr"] += 1
         if data["from_who"] not in CardPool:
             card = ""
-        with open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'w',encoding='utf-8') as f:
+        with open(CardCountPath,'w',encoding='utf-8') as f:
             json.dump(CountList, f,ensure_ascii=False)
         result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
@@ -134,7 +157,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 sr = "无"
             if ssr == "":
                 ssr = "无"
-            CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
+            CountJson = open(CardCountPath,'r')
             c = CountJson.read()
             CountJson.close()
             CountList = json.loads(c)
@@ -171,14 +194,13 @@ SSR：{ssr} | {ssr_all}条
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
         elif SentenceCheck in ["图片","图","截图"]:
-            ScuPath = "/home/zhenxun_bot-main/resources/image/scu/gay/"
-            length = len(os.listdir(ScuPath))
+            length = len(os.listdir(ScuImageGayPath))
             if length == 0:
                 logger.warning(f"图库 '楠桐' 为空，调用取消！")
                 await quotations.finish("该图库中没有图片噢")
-            index = os.listdir(ScuPath)
+            index = os.listdir(ScuImageGayPath)
             img = random.choice(index)
-            result = image(ScuPath + str(img))
+            result = image("scu/gay/" + str(img))
             if result:
                 logger.info(
                     f"发送:" + result,
@@ -241,7 +263,7 @@ async def _(event: MessageEvent):
     data = []
     card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
 
-    CountJson = open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'r')
+    CountJson = open(CardCountPath,'r')
     c = CountJson.read()
     CountJson.close()
     CountList = json.loads(c)
@@ -278,7 +300,7 @@ async def _(event: MessageEvent):
         hitokoto = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
         data.append(hitokoto)
 
-    with open("/home/zhenxun_bot-main/resources/json/scu/card_count.json",'w',encoding='utf-8') as f:
+    with open(CardCountPath,'w',encoding='utf-8') as f:
         json.dump(CountList, f,ensure_ascii=False)
     result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "") + f"\n\n汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"
     await quotations_ten.send(result)
