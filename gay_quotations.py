@@ -19,7 +19,7 @@ usage：
     楠桐语录
     指令：
         楠桐语录
-        楠桐语录十连
+        楠桐语录.n抽 目前支持1抽-30抽
         楠桐语录 ["查询","查询语录","语录查询"]
         楠桐语录 ["图片","图","截图"]
 
@@ -38,7 +38,7 @@ __plugin_settings__ = {
 __plugin_type__ = ("语录", 1)
 
 quotations = on_command("楠桐语录", aliases={"楠桐语录"}, priority=5, block=True)
-quotations_ten = on_command("楠桐语录十连", aliases={"楠桐语录十连"}, priority=5, block=True)
+quotations_n = on_command("楠桐语录.", aliases={"楠桐语录."}, priority=5, block=True)
 
 url = "http://sentence.osttsstudio.ltd:8000/?c=c"
 CheckUrl = "http://sentence.osttsstudio.ltd:9000/c.json"
@@ -230,8 +230,18 @@ SSR：{ssr} | {ssr_all}条
         flush = gc.collect()
         print(f"已成功清理内存：{flush}")
 
-@quotations_ten.handle()
-async def _(event: MessageEvent):
+@quotations_n.handle()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    MaxCount: int = 30
+    msg = arg.extract_plain_text().strip().split()
+    DrawCount: int = str(msg[0]).replace("抽", "")
+    if msg[0] == "一井":
+        DrawCount: int = MaxCount
+    if DrawCount == "" or DrawCount in ["0", "零"]:
+        await quotations_n.finish("虚空抽卡？")
+    elif int(DrawCount) > int(MaxCount):
+        await quotations_n.finish(f"太多辣孩子塞不下辣，最多只能塞{MaxCount}发!")
+
     f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将语言文件写入缓存
     n = []
     r = []
@@ -268,7 +278,8 @@ async def _(event: MessageEvent):
     CountJson.close()
     CountList = json.loads(c)
 
-    for i in range(10):
+    
+    for i in range(int(DrawCount)):
         text = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         if text["from_who"] in n:
@@ -303,7 +314,7 @@ async def _(event: MessageEvent):
     with open(CardCountPath,'w',encoding='utf-8') as f:
         json.dump(CountList, f,ensure_ascii=False)
     result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "") + f"\n\n汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"
-    await quotations_ten.send(result)
+    await quotations_n.send(result)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
         + str(result)
