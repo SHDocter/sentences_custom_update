@@ -21,13 +21,18 @@ usage：
     楠桐语录
     指令：
         楠桐语录
-        楠桐语录 + n抽|单抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
-        楠桐语录配置上限 n 可自定义n抽单次上限 该命令默认需要5级以上权限 该配置目前为全局配置，所有群的上限都会被修改！
-        n抽触发正则：([0-9]+抽|零抽|单抽|抽)
+        楠桐语录n抽|单抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
+        楠桐语录 ["配置上限", "修改上限"] n | 可自定义n抽单次上限 该命令默认需要5级以上权限 该配置目前为全局配置，所有群的上限都会被修改！
+        n抽触发正则：([0-9]+抽|零抽|单抽|抽|一井|抽卡)
         楠桐语录 ["查询","查询语录","语录查询"]
         楠桐语录 ["图片","图","截图"]
 
-累计抽卡数统计时间从2023.7.29 15:00开始
+    累计抽卡数统计时间从2023.7.29 15:00开始
+
+    错误码：
+    10404：不存在的参数
+    10001：参数不符合要求
+    1012x：权限不足,x为所需权限
 """.strip()
 __plugin_des__ = "楠桐语录给你力量"
 __plugin_cmd__ = ["楠桐语录"]
@@ -65,7 +70,8 @@ count = {
     "n": 0,
     "r": 0,
     "sr": 0,
-    "ssr": 0
+    "ssr": 0,
+    "DrawCount": 50
 }
 if not ScuDataPath.exists():
     os.mkdir(ScuDataPath)
@@ -153,8 +159,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         print(f"已成功清理内存：{flush}")
     elif len(msg) >= 1:
         SentenceCheck = msg[0]
-        DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽|一井)", SentenceCheck)
-        if SentenceCheck == "配置上限":
+        DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck)
+        if SentenceCheck in ["配置上限", "修改上限"]:
             if isinstance(event, GroupMessageEvent):
                 if not await LevelUser.check_level(
                     event.user_id,
@@ -162,14 +168,15 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                     Config.get_config("gay_quotations", "SCU_DRAW_LEVEL"),
                 ):
                     await quotations.finish(
-                        f"您的权限不足，配置抽卡上限需要 {Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')} 级权限..",
+                        f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')}",
                         at_sender=False
                     )
                 CountList["DrawCount"] = int(msg[1])
             with open(CardCountPath,'w',encoding='utf-8') as f:
                 json.dump(CountList, f,ensure_ascii=False)
-            if int(msg[1]) > 30:
-                result = f"已成功配置抽卡上限为{msg[1]}，警告！超过 30 将会使bot发送过长的消息，存在被风控的风险！"
+            MaxCountError = 30
+            if int(msg[1]) > int(MaxCountError):
+                result = f"已成功配置抽卡上限为{msg[1]}，警告！超过 {MaxCountError} 将会使bot发送过长的消息，存在被风控的风险！"
             else:
                 result = f"已成功配置抽卡上限为{msg[1]},该配置目前为全局配置，所有群的上限都会被修改！"
             logger.info(
@@ -267,7 +274,7 @@ SSR：{ssr} | {ssr_all}条
             if DrawCount == "" or DrawCount in ["0", "零"]:
                 await quotations.finish("虚空抽卡？")
             elif int(DrawCount) > int(MaxCount):
-                await quotations.finish(f"太多辣孩子塞不下辣，最多只能塞{MaxCount}发!")
+                await quotations.finish(f"孩子塞不下辣，最多只能塞{MaxCount}发!")
 
             data = []
             card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
@@ -315,10 +322,10 @@ SSR：{ssr} | {ssr_all}条
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
         else:
-            await quotations.finish("参数有误,code:2，请使用'帮助楠桐语录'查看帮助...")
+            await quotations.finish("参数有误,code:10404，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
     else:
-        await quotations.finish("参数有误,code:1，请使用'帮助楠桐语录'查看帮助...")
+        await quotations.finish("参数有误,code:20001，请使用'帮助楠桐语录'查看帮助...")
         flush = gc.collect()
         print(f"已成功清理内存：{flush}")
