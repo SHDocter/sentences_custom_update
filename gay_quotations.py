@@ -9,6 +9,7 @@ from configs.path_config import DATA_PATH, IMAGE_PATH
 from pathlib import Path
 import os
 import gc
+import re
 import json
 import random
 import datetime
@@ -19,7 +20,8 @@ usage：
     楠桐语录
     指令：
         楠桐语录
-        楠桐语录.n抽 目前支持1抽-30抽
+        楠桐语录 + n抽|单抽 目前支持1抽-30抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
+        n抽触发正则：([0-9]+抽|零抽|单抽|抽)
         楠桐语录 ["查询","查询语录","语录查询"]
         楠桐语录 ["图片","图","截图"]
 
@@ -33,12 +35,11 @@ __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["楠桐语录", "楠桐语录十连"],
+    "cmd": ["楠桐语录"],
 }
 __plugin_type__ = ("语录", 1)
 
 quotations = on_command("楠桐语录", aliases={"楠桐语录"}, priority=5, block=True)
-quotations_n = on_command("楠桐语录.", aliases={"楠桐语录."}, priority=5, block=True)
 
 url = "http://sentence.osttsstudio.ltd:8000/?c=c"
 CheckUrl = "http://sentence.osttsstudio.ltd:9000/c.json"
@@ -142,6 +143,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         print(f"已成功清理内存：{flush}")
     elif len(msg) == 1:
         SentenceCheck = msg[0]
+        DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽)", SentenceCheck)
         if SentenceCheck in ["查询","查询语录","语录查询"]:
             list = str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             percent = str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
@@ -193,6 +195,7 @@ SSR：{ssr} | {ssr_all}条
     )
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
+
         elif SentenceCheck in ["图片","图","截图"]:
             length = len(os.listdir(ScuImageGayPath))
             if length == 0:
@@ -221,103 +224,69 @@ SSR：{ssr} | {ssr_all}条
                 await quotations.finish(f"发生错误！")
                 flush = gc.collect()
                 print(f"已成功清理内存：{flush}")
+
+        elif DrawRegex:
+            MaxCount = 30
+            DrawCount = str(SentenceCheck).replace("抽", "")
+            if SentenceCheck == "一井":
+                DrawCount = MaxCount
+            elif SentenceCheck == "单抽":
+                DrawCount = 1
+            if DrawCount == "" or DrawCount in ["0", "零"]:
+                await quotations.finish("虚空抽卡？")
+            elif int(DrawCount) > int(MaxCount):
+                await quotations.finish(f"太多辣孩子塞不下辣，最多只能塞{MaxCount}发!")
+
+            data = []
+            card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
+
+            for i in range(int(DrawCount)):
+                text = (await AsyncHttpx.get(url, timeout=5)).json()
+                card = ""
+                if text["from_who"] in n:
+                    card = " | N卡"
+                    card_n += 1
+                    CountList["n"] += 1
+                else:
+                    card_n
+                if text["from_who"] in r:
+                    card = " | R卡"
+                    card_r += 1
+                    CountList["r"] += 1
+                else:
+                    card_r
+                if text["from_who"] in sr:
+                    card = " | SR卡"
+                    card_sr += 1
+                    CountList["sr"] += 1
+                else:
+                    card_sr
+                if text["from_who"] in ssr:
+                    card = " | SSR卡"
+                    card_ssr += 1
+                    CountList["ssr"] += 1
+                else:
+                    card_ssr
+                if text["from_who"] not in CardPool:
+                    card = ""
+                hitokoto = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
+                data.append(hitokoto)
+
+            with open(CardCountPath,'w',encoding='utf-8') as f:
+                json.dump(CountList, f,ensure_ascii=False)
+            result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "") + f"\n\n汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"
+            await quotations.send(result)
+            logger.info(
+                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
+                + str(result)
+            )
+            flush = gc.collect()
+            print(f"已成功清理内存：{flush}")
         else:
-            await quotations.finish("参数有误，请使用'帮助楠桐语录'查看帮助...")
+            await quotations.finish("参数有误,code:2，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
     else:
-        await quotations.finish("参数有误，请使用'帮助楠桐语录'查看帮助...")
+        await quotations.finish("参数有误,code:1，请使用'帮助楠桐语录'查看帮助...")
         flush = gc.collect()
         print(f"已成功清理内存：{flush}")
-
-@quotations_n.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
-    MaxCount: int = 30
-    msg = arg.extract_plain_text().strip().split()
-    DrawCount: int = str(msg[0]).replace("抽", "")
-    if msg[0] == "一井":
-        DrawCount: int = MaxCount
-    if DrawCount == "" or DrawCount in ["0", "零"]:
-        await quotations_n.finish("虚空抽卡？")
-    elif int(DrawCount) > int(MaxCount):
-        await quotations_n.finish(f"太多辣孩子塞不下辣，最多只能塞{MaxCount}发!")
-
-    f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将语言文件写入缓存
-    n = []
-    r = []
-    sr = []
-    ssr = []
-    text = f.read() # 读取语言
-    f.close() # 关闭语言文件
-    content = json.loads(text) # 转为List，List中为字典
-    List = []
-    for _ in content:
-        AuthorList = _["from_who"]
-        List.append(AuthorList)
-    Dict = {}
-    for key in List:
-        Dict[key] = Dict.get(key, 0) + 1
-    NewDict = {}
-    for key,value in Dict.items():
-        value = f"{int(value / len(content) * 10000) / 100}"
-        NewDict[key] = f"{value}%"
-        if float(value) <= 2.0:
-            ssr.append(key)
-        elif float(value) <= 10.0:
-            sr.append(key)
-        elif float(value) <= 25.0:
-            r.append(key)
-        else:
-            n.append(key)
-    CardPool = n + r + sr + ssr
-    data = []
-    card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
-
-    CountJson = open(CardCountPath,'r')
-    c = CountJson.read()
-    CountJson.close()
-    CountList = json.loads(c)
-
-    
-    for i in range(int(DrawCount)):
-        text = (await AsyncHttpx.get(url, timeout=5)).json()
-        card = ""
-        if text["from_who"] in n:
-            card = " | N卡"
-            card_n += 1
-            CountList["n"] += 1
-        else:
-            card_n
-        if text["from_who"] in r:
-            card = " | R卡"
-            card_r += 1
-            CountList["r"] += 1
-        else:
-            card_r
-        if text["from_who"] in sr:
-            card = " | SR卡"
-            card_sr += 1
-            CountList["sr"] += 1
-        else:
-            card_sr
-        if text["from_who"] in ssr:
-            card = " | SSR卡"
-            card_ssr += 1
-            CountList["ssr"] += 1
-        else:
-            card_ssr
-        if text["from_who"] not in CardPool:
-            card = ""
-        hitokoto = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
-        data.append(hitokoto)
-
-    with open(CardCountPath,'w',encoding='utf-8') as f:
-        json.dump(CountList, f,ensure_ascii=False)
-    result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "") + f"\n\n汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"
-    await quotations_n.send(result)
-    logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
-        + str(result)
-    )
-    flush = gc.collect()
-    print(f"已成功清理内存：{flush}")
