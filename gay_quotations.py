@@ -21,7 +21,9 @@ usage：
     楠桐语录
     指令：
         楠桐语录
+        楠桐语录[“限定”, “指定”] 角色（必须为全名，可使用楠桐语录查询获取）
         楠桐语录n抽|单抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
+        楠桐语录限定n抽 角色（必须为全名，可使用楠桐语录查询获取）
         楠桐语录 ["配置上限", "修改上限"] n | 可自定义n抽单次上限 该命令默认需要5级以上权限 该配置目前为全局配置，所有群的上限都会被修改！
         n抽触发正则：([0-9]+抽|零抽|单抽|抽|一井|抽卡)
         楠桐语录 ["查询","查询语录","语录查询"]
@@ -63,6 +65,7 @@ ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
 ScuImageGayPath = ScuImagePath / "gay"
 CardCountPath = ScuDataPath / "card_count.json"
+MaxDrawPath = ScuDataPath / "max_draw.json"
 
 print(ScuImagePath, ScuDataPath, ScuImageGayPath, CardCountPath)
 
@@ -70,8 +73,7 @@ count = {
     "n": 0,
     "r": 0,
     "sr": 0,
-    "ssr": 0,
-    "DrawCount": 50
+    "ssr": 0
 }
 if not ScuDataPath.exists():
     os.mkdir(ScuDataPath)
@@ -129,7 +131,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     c = CountJson.read()
     CountJson.close()
     CountList = json.loads(c)
-
+    DrawJson = open(MaxDrawPath, 'r')
+    d = DrawJson.read()
+    DrawJson.close()
+    MaxDrawCountLoad = json.loads(d)
     if len(msg) < 1:
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
@@ -171,9 +176,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                         f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')}",
                         at_sender=False
                     )
-                CountList["DrawCount"] = int(msg[1])
-            with open(CardCountPath,'w',encoding='utf-8') as f:
-                json.dump(CountList, f,ensure_ascii=False)
+                MaxDrawCountLoad["DrawCount"] = int(msg[1])
+            with open(MaxDrawPath,'w',encoding='utf-8') as f:
+                json.dump(MaxDrawCountLoad, f,ensure_ascii=False)
             MaxCountError = 30
             if int(msg[1]) > int(MaxCountError):
                 result = f"已成功配置抽卡上限为{msg[1]}，警告！超过 {MaxCountError} 将会使bot发送过长的消息，存在被风控的风险！"
@@ -183,8 +188,73 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 配置楠桐语录抽卡上限:{msg[1]}"
     )
             await quotations.send(result)
+        elif SentenceCheck in ["限定", "指定"]:
+            DrawAuthor = msg[1]
+            Draw = 1
+            DrawAuthorCount = 0
+            while Draw == 1:
+                data = (await AsyncHttpx.get(url, timeout=10)).json()
+                DrawAuthorCount += 1
+                if data["from_who"] == DrawAuthor:
+                    break
+                elif DrawAuthorCount == 1000:
+                    break
+            if DrawAuthorCount == 1000:
+                result = f"抽了{DrawAuthorCount}次都没抽到，你真是个非酋"
+            else:
+                result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]} | 抽取次数：{DrawAuthorCount}'
+            await quotations.send(result)
+            logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
+            + result
+        )
+            flush = gc.collect()
+            print(f"已成功清理内存：{flush}")
+        elif re.match(r"(限定|指定)([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck):
+            MaxCount = MaxDrawCountLoad["DrawCount"]
+            DrawCount = SentenceCheck
+            if not SentenceCheck in ["限定抽", "限定抽卡", "限定单抽"]:
+                DrawCount = str(SentenceCheck).replace("限定", "").replace("抽", "")
+            if SentenceCheck in ["限定一井", "指定一井"]:
+                DrawCount = MaxCount
+            if SentenceCheck in ["限定单抽", "指定单抽"]:
+                DrawCount = 1
+            if DrawCount == "" or SentenceCheck in ["限定0抽", "限定零抽", "限定抽卡", "指定0抽", "指定零抽", "指定抽卡"]:
+                await quotations.finish("虚空抽卡？")
+            elif int(DrawCount) > int(MaxCount):
+                await quotations.finish(f"孩子塞不下辣，最多只能塞{MaxCount}发!")
+
+            data = []
+            MaxDrawCount = 500
+            for i in range(int(DrawCount)):
+                Draw = 1
+                DrawAuthorCount = 0
+                DrawAuthor = msg[1]
+                while Draw == 1:
+                    text = (await AsyncHttpx.get(url, timeout=10)).json()
+                    DrawAuthorCount += 1
+                    if text["from_who"] == DrawAuthor:
+                        break
+                    elif DrawAuthorCount == int(MaxDrawCount):
+                        break
+                result = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]} | 抽取次数：{DrawAuthorCount}'
+                data.append(result)
+
+            if DrawAuthorCount == int(MaxDrawCount):
+                result = f"抽了{MaxDrawCount * DrawCount}次都没抽到，你真是个非酋"
+            else:
+                result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "")
+            
+            await quotations.send(result)
+            logger.info(
+                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
+                + str(result)
+            )
+            flush = gc.collect()
+            print(f"已成功清理内存：{flush}")
+
         elif SentenceCheck in ["查询","查询语录","语录查询"]:
-            list = str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            List = str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             percent = str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
@@ -198,21 +268,21 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 sr = "无"
             if ssr == "":
                 ssr = "无"
-            CountJson = open(CardCountPath,'r')
+            CountJson = open(CardCountPath, 'r')
             c = CountJson.read()
             CountJson.close()
             CountList = json.loads(c)
             CardDict = {}
-            DrawCount = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
+            DrawCountCheck = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
             for CardKey,CardValue in CountList.items():
-                CardValue = f"{int(CardValue / DrawCount * 10000) / 100}"
+                CardValue = f"{int(CardValue / DrawCountCheck * 10000) / 100}"
                 CardDict[CardKey] = f"{CardValue}%"
             DrawPercent = str(CardDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             CardCount = str(CountList).replace("{", "").replace("}", "").replace("'", "").replace(",", "")
             result = f"""语录总数：{str(len(content))}
 
 统计：
-{list}
+{List}
 
 占比：
 {percent}
@@ -223,7 +293,7 @@ R：{r} | {r_all}条
 SR：{sr} | {sr_all}条
 SSR：{ssr} | {ssr_all}条
 
-累计总数：{DrawCount}
+累计总数：{DrawCountCheck}
 累计抽卡：{CardCount} 
 累计概率：{DrawPercent}
 统计区间：2023.07.29 15:00 - {datetime.datetime.now().strftime('%Y.%m.%d %H:%M')}"""
@@ -265,13 +335,13 @@ SSR：{ssr} | {ssr_all}条
                 print(f"已成功清理内存：{flush}")
 
         elif DrawRegex:
-            MaxCount = CountList["DrawCount"]
+            MaxCount = MaxDrawCountLoad["DrawCount"]
             DrawCount = SentenceCheck
             if not SentenceCheck in ["抽", "抽卡", "单抽"]:
                 DrawCount = str(SentenceCheck).replace("抽", "")
-            elif SentenceCheck == "一井":
+            if SentenceCheck == "一井":
                 DrawCount = MaxCount
-            elif SentenceCheck == "单抽":
+            if SentenceCheck == "单抽":
                 DrawCount = 1
             if DrawCount == "" or SentenceCheck in ["0抽", "零抽", "抽卡"]:
                 await quotations.finish("虚空抽卡？")
