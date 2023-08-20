@@ -266,12 +266,14 @@ SSR：{ssr} | {ssr_all}条
 
         elif DrawRegex:
             MaxCount = CountList["DrawCount"]
-            DrawCount = str(SentenceCheck).replace("抽", "")
-            if SentenceCheck == "一井":
+            DrawCount = SentenceCheck
+            if not SentenceCheck in ["抽", "抽卡", "单抽"]:
+                DrawCount = str(SentenceCheck).replace("抽", "")
+            elif SentenceCheck == "一井":
                 DrawCount = MaxCount
             elif SentenceCheck == "单抽":
                 DrawCount = 1
-            if DrawCount == "" or DrawCount in ["0", "零"]:
+            if DrawCount == "" or SentenceCheck in ["0抽", "零抽", "抽卡"]:
                 await quotations.finish("虚空抽卡？")
             elif int(DrawCount) > int(MaxCount):
                 await quotations.finish(f"孩子塞不下辣，最多只能塞{MaxCount}发!")
