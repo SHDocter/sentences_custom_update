@@ -153,7 +153,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         print(f"已成功清理内存：{flush}")
     elif len(msg) >= 1:
         SentenceCheck = msg[0]
-        DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽)", SentenceCheck)
+        DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽|一井)", SentenceCheck)
         if SentenceCheck == "配置上限":
             if isinstance(event, GroupMessageEvent):
                 if not await LevelUser.check_level(
