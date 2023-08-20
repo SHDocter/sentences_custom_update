@@ -6,7 +6,8 @@ from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
 from configs.path_config import DATA_PATH, IMAGE_PATH
-from pathlib import Path
+from models.level_user import LevelUser
+from configs.config import Config
 import os
 import gc
 import re
@@ -20,7 +21,8 @@ usage：
     楠桐语录
     指令：
         楠桐语录
-        楠桐语录 + n抽|单抽 目前支持1抽-30抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
+        楠桐语录 + n抽|单抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
+        楠桐语录配置上限 n 可自定义n抽单次上限 该命令默认需要5级以上权限 该配置目前为全局配置，所有群的上限都会被修改！
         n抽触发正则：([0-9]+抽|零抽|单抽|抽)
         楠桐语录 ["查询","查询语录","语录查询"]
         楠桐语录 ["图片","图","截图"]
@@ -38,6 +40,14 @@ __plugin_settings__ = {
     "cmd": ["楠桐语录"],
 }
 __plugin_type__ = ("语录", 1)
+__plugin_configs__ = {
+    "SCU_DRAW_LEVEL": {
+        "value": 5,
+        "help": "群内修改抽卡上限需要的权限",
+        "default_value": 5,
+        "type": int,
+    },
+}
 
 quotations = on_command("楠桐语录", aliases={"楠桐语录"}, priority=5, block=True)
 
@@ -141,10 +151,32 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     )
         flush = gc.collect()
         print(f"已成功清理内存：{flush}")
-    elif len(msg) == 1:
+    elif len(msg) >= 1:
         SentenceCheck = msg[0]
         DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽)", SentenceCheck)
-        if SentenceCheck in ["查询","查询语录","语录查询"]:
+        if SentenceCheck == "配置上限":
+            if isinstance(event, GroupMessageEvent):
+                if not await LevelUser.check_level(
+                    event.user_id,
+                    event.group_id,
+                    Config.get_config("gay_quotations", "SCU_DRAW_LEVEL"),
+                ):
+                    await quotations.finish(
+                        f"您的权限不足，配置抽卡上限需要 {Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')} 级权限..",
+                        at_sender=False
+                    )
+                CountList["DrawCount"] = int(msg[1])
+            with open(CardCountPath,'w',encoding='utf-8') as f:
+                json.dump(CountList, f,ensure_ascii=False)
+            if int(msg[1]) > 30:
+                result = f"已成功配置抽卡上限为{msg[1]}，警告！超过 30 将会使bot发送过长的消息，存在被风控的风险！"
+            else:
+                result = f"已成功配置抽卡上限为{msg[1]},该配置目前为全局配置，所有群的上限都会被修改！"
+            logger.info(
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 配置楠桐语录抽卡上限:{msg[1]}"
+    )
+            await quotations.send(result)
+        elif SentenceCheck in ["查询","查询语录","语录查询"]:
             list = str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             percent = str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
@@ -226,7 +258,7 @@ SSR：{ssr} | {ssr_all}条
                 print(f"已成功清理内存：{flush}")
 
         elif DrawRegex:
-            MaxCount = 30
+            MaxCount = CountList["DrawCount"]
             DrawCount = str(SentenceCheck).replace("抽", "")
             if SentenceCheck == "一井":
                 DrawCount = MaxCount
@@ -241,7 +273,7 @@ SSR：{ssr} | {ssr_all}条
             card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
 
             for i in range(int(DrawCount)):
-                text = (await AsyncHttpx.get(url, timeout=5)).json()
+                text = (await AsyncHttpx.get(url, timeout=10)).json()
                 card = ""
                 if text["from_who"] in n:
                     card = " | N卡"
