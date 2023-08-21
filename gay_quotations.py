@@ -55,6 +55,13 @@ __plugin_configs__ = {
         "type": int,
     },
 }
+__plugin_cd_limit__ = {
+    "cd": 10,                # 限制 cd 时长
+    "check_type": "all",    # 'private'/'group'/'all'，限制私聊/群聊/全部
+    "limit_type": "user",   # 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
+    "rst": "[uname]先生，bot已经被你塞满辣，等会儿再来噢铁汁",            # 回复的话，为None时不回复，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
+    "status": True          # 此限制的开关状态
+}
 
 quotations = on_command("楠桐语录", aliases={"楠桐语录"}, priority=5, block=True)
 
