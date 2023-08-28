@@ -23,6 +23,7 @@ usage：
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
         查询语录（目前仅能查询语录列表）
+        重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         
         语录内容不能有空格
         图片不需要填写作者
@@ -34,7 +35,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.9"
+__plugin_version__ = "1.0.10"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -56,6 +57,15 @@ __plugin_configs__ = {
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
+ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
+
+@ReloadSentences.handle()
+async def _():
+    try:
+        os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
+        await CheckSentences.send("已重载语录！")
+    except:
+        await CheckSentences.send("重载发生错误！")
 
 @CheckSentences.handle()
 async def _():
