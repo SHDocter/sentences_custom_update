@@ -110,7 +110,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             await UploadSentence.finish("该语录不存在！")
         try:
             Upload()
-            cmd = "/root/hitokoto-api/restart.sh"
+            cmd = "custom_plugins/scu_bot/restart.sh"
             os.system(cmd)
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
@@ -156,7 +156,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
         try:
             Upload()
-            cmd = "/root/hitokoto-api/restart.sh"
+            cmd = "custom_plugins/scu_bot/restart.sh"
             os.system(cmd)
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
