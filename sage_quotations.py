@@ -32,8 +32,8 @@ __plugin_settings__ = {
 }
 __plugin_type__ = ("语录", 1)
 
-quotations = on_command("桑吉语录", aliases={"桑吉语录"}, priority=5, block=True)
-quotations_ten = on_command("桑吉语录十连", aliases={"桑吉语录十连"}, priority=5, block=True)
+quotations = on_command("桑吉语录", aliases={"桑吉语录", "桑急语录", "羊驼语录"}, priority=5, block=True)
+quotations_ten = on_command("桑吉语录十连", aliases={"桑吉语录十连", "桑急语录十连", "羊驼语录十连"}, priority=5, block=True)
 
 url = "http://sentence.osttsstudio.ltd:8000/?c=a"
 CheckUrl = "http://sentence.osttsstudio.ltd:9000/a.json"
