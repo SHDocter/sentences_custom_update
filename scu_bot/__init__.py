@@ -19,7 +19,7 @@ usage：
     上传语录
     指令：
         上传语录 语录名称 语录内容
-        [回复] 上传语录 语录名称
+        [回复] 上传语录 语录名称 语录作者（如不填写作者将默认为群名称）
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
         查询语录（目前仅能查询语录列表）
@@ -27,15 +27,16 @@ usage：
         
         语录内容不能有空格
         图片不需要填写作者
-        回复不需要填写作者，默认为群名称
+        回复作者不是必填的，默认为群名称
         
         例：上传语录 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
+        例：[回复] 上传语录 楠桐 晨于曦Asahi
         例：上传图片 楠桐 [图片] | [回复] 上传图片 楠桐
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.10"
+__plugin_version__ = "1.0.11"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -87,7 +88,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         sentence = strinfo.sub(",", OriginSentence)
         if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
             try:
-                author = reply["sender"]["nickname"]
+                if len(msg) >= 2:
+                    author = str(msg[1])
+                else:
+                    author = reply["sender"]["nickname"]
             except:
                 await UploadSentence.finish("作者获取异常！")
             if author == "小丑竟是我自己":
