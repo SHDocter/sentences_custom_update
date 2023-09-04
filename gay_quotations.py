@@ -120,7 +120,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             ssr.append(key)
         elif float(ValuePercent) <= 10.0:
             sr.append(key)
-        elif float(ValuePercent) <= 25.0:
+        elif float(ValuePercent) <= 22.0:
             r.append(key)
         else:
             n.append(key)
