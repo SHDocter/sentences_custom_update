@@ -20,7 +20,7 @@ __plugin_usage__ = """
 usage：
     楠桐语录
     指令：
-        楠桐语录
+        "楠桐语录", "腩酮语录", "腩通语录", "腩桐语录", "喃酮语录", "喃铜语录", "喃通语录", "喃桐语录", "南酮语录", "南铜语录", "南桐语录", "南通语录"
         楠桐语录[“限定”, “指定”] 角色（必须为全名，可使用楠桐语录查询获取）
         楠桐语录n抽|单抽 例：楠桐语录30抽，楠桐语录14抽，楠桐语录单抽
         楠桐语录限定n抽 角色（必须为全名，可使用楠桐语录查询获取）
@@ -63,7 +63,7 @@ __plugin_cd_limit__ = {
     "status": True          # 此限制的开关状态
 }
 
-quotations = on_command("楠桐语录", aliases={"楠桐语录"}, priority=5, block=True)
+quotations = on_command("楠桐语录", aliases={"楠桐语录", "腩酮语录", "腩通语录", "腩桐语录", "喃酮语录", "喃铜语录", "喃通语录", "喃桐语录", "南酮语录", "南铜语录", "南桐语录", "南通语录"}, priority=5, block=True)
 
 url = "http://sentence.osttsstudio.ltd:8000/?c=c"
 CheckUrl = "http://sentence.osttsstudio.ltd:9000/c.json"
