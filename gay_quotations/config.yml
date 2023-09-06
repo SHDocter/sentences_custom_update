@@ -1,0 +1,5 @@
+show:
+  card_all: true
+  list: true
+  percent: true
+  cardpool: true

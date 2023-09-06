@@ -12,6 +12,7 @@ import os
 import gc
 import re
 import json
+import yaml
 import random
 import datetime
 
@@ -27,6 +28,7 @@ usage：
         楠桐语录 ["配置上限", "修改上限"] n | 可自定义n抽单次上限 该命令默认需要5级以上权限
         n抽触发正则：([0-9]+抽|零抽|单抽|抽|一井|抽卡)
         楠桐语录 ["查询","查询语录","语录查询"]
+        楠桐语录 ["查询","查询语录","语录查询"] 显示/隐藏总数 | 显示/隐藏统计 | 显示/隐藏占比 | 显示/隐藏卡池
         楠桐语录 ["图片","图","截图"]
 
     累计抽卡数统计时间从2023.7.29 15:00开始
@@ -74,8 +76,16 @@ ScuImageGayPath = ScuImagePath / "gay"
 CardCountPath = ScuDataPath / "card_count.json"
 MaxDrawPath = ScuDataPath / "max_draw.json"
 
-print(ScuImagePath, ScuDataPath, ScuImageGayPath, CardCountPath)
-
+if not os.path.exists("custom_plugins/gay_quotations/config.yml"):
+    config = """
+show:
+  card_all: true
+  list: true
+  percent: true
+  cardpool: true
+"""
+    with open("custom_plugins/gay_quotations/config.yml", "w", encoding="utf-8") as f:
+        yaml.dump(yaml.load(config), f)
 count = {
     "n": 0,
     "r": 0,
@@ -269,8 +279,32 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             print(f"已成功清理内存：{flush}")
 
         elif SentenceCheck in ["查询","查询语录","语录查询"]:
-            List = str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
-            percent = str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            with open("custom_plugins/gay_quotations/config.yml", "r", encoding="utf-8") as f:
+                config = yaml.load(f, Loader=yaml.FullLoader)
+            if len(msg) >= 2:
+                CmdMsg = msg[1]
+                if CmdMsg in ["显示总数", "隐藏总数", "显示统计", "隐藏统计", "显示占比", "隐藏占比", "显示卡池", "隐藏卡池"]:
+                    if CmdMsg == "显示总数":
+                        config["show"]["card_all"] = True
+                    elif CmdMsg == "隐藏总数":
+                        config["show"]["card_all"] = False
+                    elif CmdMsg == "显示统计":
+                        config["show"]["list"] = True
+                    elif CmdMsg == "隐藏统计":
+                        config["show"]["list"] = False
+                    elif CmdMsg == "显示占比":
+                        config["show"]["percent"] = True
+                    elif CmdMsg == "隐藏占比":
+                        config["show"]["percent"] = False
+                    elif CmdMsg == "显示卡池":
+                        config["show"]["cardpool"] = True
+                    elif CmdMsg == "隐藏卡池":
+                        config["show"]["cardpool"] = False
+                    with open("custom_plugins/gay_quotations/config.yml", "w") as f:
+                        yaml.dump(config, f)
+                    await quotations.finish(f"已成功{CmdMsg}!")
+            List = "\n" + str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            percent = "\n" + str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             sr = str(sr).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
@@ -294,20 +328,30 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 CardDict[CardKey] = f"{CardValue}%"
             DrawPercent = str(CardDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             CardCount = str(CountList).replace("{", "").replace("}", "").replace("'", "").replace(",", "")
-            result = f"""语录总数：{str(len(content))}
-
-统计：
-{List}
-
-占比：
-{percent}
-
-卡池：
+            card_all = str(len(content))
+            ShowCardPool = f"""
 N：{n} | {n_all}条
 R：{r} | {r_all}条
 SR：{sr} | {sr_all}条
 SSR：{ssr} | {ssr_all}条
+"""
+            with open("custom_plugins/gay_quotations/config.yml", "r", encoding="utf-8") as f:
+                config = yaml.load(f, Loader=yaml.FullLoader)
+            if not config["show"]["card_all"]:
+                card_all = "**"
+            if not config["show"]["list"]:
+                List = "**"
+            if not config["show"]["percent"]:
+                percent = "**"
+            if not config["show"]["cardpool"]:
+                ShowCardPool = "**\n"
+            result = f"""语录总数：{card_all}
 
+统计：{List}
+
+占比：{percent}
+
+卡池：{ShowCardPool}
 累计总数：{DrawCountCheck}
 累计抽卡：{CardCount} 
 累计概率：{DrawPercent}
