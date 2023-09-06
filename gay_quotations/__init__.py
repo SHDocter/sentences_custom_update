@@ -130,10 +130,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             ssr.append(key)
         elif float(ValuePercent) <= 10.0:
             sr.append(key)
-        elif float(ValuePercent) <= 22.0:
+        elif float(ValuePercent) <= 25.0:
             r.append(key)
         else:
             n.append(key)
+        if not "晨于曦Asahi" in n:
+            n.append("晨于曦Asahi")
+            if "晨于曦Asahi" in r:
+                r.remove("晨于曦Asahi")
+            elif "晨于曦Asahi" in sr:
+                sr.remove("晨于曦Asahi")
+            elif "晨于曦Asahi" in ssr:
+                ssr.remove("晨于曦Asahi")
         if key in n:
             n_all += int(value)
         elif key in r:
