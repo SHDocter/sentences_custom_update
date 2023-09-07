@@ -1,8 +1,6 @@
+'group_id': 50
 show:
   card_all: true
   list: true
   percent: true
   cardpool: true
-
-main:
-  group_id: 50

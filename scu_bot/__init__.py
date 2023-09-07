@@ -79,6 +79,32 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     global SentenceName
     global sentence
     global author
+    text = {"user_id": f"{event.user_id}"}
+    if not os.path.exists("custom_plugins/scu_bot/user.json"):
+        with open("custom_plugins/scu_bot/user.json", "w", encoding="utf-8") as u:
+            json.dump(text, u, ensure_ascii=False)
+    if not os.path.exists("custom_plugins/scu_bot/count.txt"):
+        with open("custom_plugins/scu_bot/count.txt", "w") as t:
+            t.write("1")
+    with open("custom_plugins/scu_bot/user.json", "r", encoding="utf-8") as u:
+        user = json.load(u)
+    if f"{event.user_id}" == user["user_id"]:
+        with open("custom_plugins/scu_bot/count.txt", "r") as t:
+            count = int(t.read())
+        if int(count) <= 2:
+            count += 1
+            with open("custom_plugins/scu_bot/count.txt", "w") as t:
+                t.write(str(count))
+        elif int(count) > 2:
+            await UploadSentence.send("你有点集端了")
+            os.remove("custom_plugins/scu_bot/count.txt")
+            os.remove("custom_plugins/scu_bot/user.json")
+        else:
+            await UploadSentence.send("好像哪里出了问题")
+    else:
+        os.remove("custom_plugins/scu_bot/count.txt")
+        os.remove("custom_plugins/scu_bot/user.json")
+
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
     if event.reply:
