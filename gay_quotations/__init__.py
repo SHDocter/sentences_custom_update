@@ -74,9 +74,9 @@ ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
 ScuImageGayPath = ScuImagePath / "gay"
 CardCountPath = ScuDataPath / "card_count.json"
-MaxDrawPath = ScuDataPath / "max_draw.json"
+MainConfigPath = ScuDataPath / "config.yml"
 
-if not os.path.exists("custom_plugins/gay_quotations/config.yml"):
+if not os.path.exists(MainConfigPath):
     config = """
 show:
   card_all: true
@@ -84,8 +84,8 @@ show:
   percent: true
   cardpool: true
 """
-    with open("custom_plugins/gay_quotations/config.yml", "w", encoding="utf-8") as f:
-        yaml.dump(yaml.load(config), f)
+    with open(MainConfigPath, "w", encoding="utf-8") as f:
+        yaml.dump(yaml.load(config, Loader=yaml.FullLoader), f)
 count = {
     "n": 0,
     "r": 0,
@@ -156,10 +156,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     c = CountJson.read()
     CountJson.close()
     CountList = json.loads(c)
-    DrawJson = open(MaxDrawPath, 'r')
-    dj = DrawJson.read()
-    DrawJson.close()
-    MaxDrawCountLoad = json.loads(dj)
+    DrawYaml = open(MainConfigPath, 'r')
+    dj = DrawYaml.read()
+    DrawYaml.close()
+    MaxDrawCountLoad = yaml.load(dj, Loader=yaml.FullLoader)
 
     if len(msg) < 1:
         data = (await AsyncHttpx.get(url, timeout=5)).json()
@@ -203,9 +203,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                         at_sender=False
                     )
             MaxDrawCountLoad[f"{event.group_id}"] = int(msg[1])
-            with open(MaxDrawPath,'w',encoding='utf-8') as f:
-                json.dump(MaxDrawCountLoad, f,ensure_ascii=False)
-                
+            with open(MainConfigPath,'w',encoding='utf-8') as f:
+                yaml.dump(MaxDrawCountLoad, f)
+
             MaxCountError = 30
             if int(msg[1]) > int(MaxCountError):
                 result = f"已成功配置抽卡上限为{msg[1]}，警告！超过 {MaxCountError} 将会使bot发送过长的消息，存在被风控的风险！"
@@ -242,8 +242,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 MaxCount = MaxDrawCountLoad[f"{event.group_id}"]
             except:
                 MaxDrawCountLoad[f"{event.group_id}"] = 50
-                with open(MaxDrawPath,'w',encoding='utf-8') as f:
-                    json.dump(MaxDrawCountLoad, f,ensure_ascii=False)
+                with open(MainConfigPath,'w',encoding='utf-8') as f:
+                    yaml.dump(MaxDrawCountLoad, f)
                 await quotations.finish("未配置抽卡上限，已默认配置为50发，请重新抽取！")
             DrawCount = SentenceCheck
             if not SentenceCheck in ["限定抽", "限定抽卡", "限定单抽"]:
@@ -287,7 +287,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             print(f"已成功清理内存：{flush}")
 
         elif SentenceCheck in ["查询","查询语录","语录查询"]:
-            with open("custom_plugins/gay_quotations/config.yml", "r", encoding="utf-8") as f:
+            with open(MainConfigPath, "r", encoding="utf-8") as f:
                 config = yaml.load(f, Loader=yaml.FullLoader)
             if len(msg) >= 2:
                 CmdMsg = msg[1]
@@ -308,7 +308,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                         config["show"]["cardpool"] = True
                     elif CmdMsg == "隐藏卡池":
                         config["show"]["cardpool"] = False
-                    with open("custom_plugins/gay_quotations/config.yml", "w") as f:
+                    with open(MainConfigPath, "w") as f:
                         yaml.dump(config, f)
                     await quotations.finish(f"已成功{CmdMsg}!")
             List = "\n" + str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
@@ -343,7 +343,7 @@ R：{r} | {r_all}条
 SR：{sr} | {sr_all}条
 SSR：{ssr} | {ssr_all}条
 """
-            with open("custom_plugins/gay_quotations/config.yml", "r", encoding="utf-8") as f:
+            with open(MainConfigPath, "r", encoding="utf-8") as f:
                 config = yaml.load(f, Loader=yaml.FullLoader)
             if not config["show"]["card_all"]:
                 card_all = "**"
@@ -406,8 +406,8 @@ SSR：{ssr} | {ssr_all}条
                 MaxCount = MaxDrawCountLoad[f"{event.group_id}"]
             except:
                 MaxDrawCountLoad[f"{event.group_id}"] = 50
-                with open(MaxDrawPath,'w',encoding='utf-8') as f:
-                    json.dump(MaxDrawCountLoad, f,ensure_ascii=False)
+                with open(MainConfigPath,'w',encoding='utf-8') as f:
+                    yaml.dump(MaxDrawCountLoad, f)
                 await quotations.finish("未配置抽卡上限，已默认配置为50发，请重新抽取！")
             DrawCount = SentenceCheck
             if not SentenceCheck in ["抽", "抽卡", "单抽"]:

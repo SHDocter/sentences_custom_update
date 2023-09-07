@@ -3,3 +3,6 @@ show:
   list: true
   percent: true
   cardpool: true
+
+main:
+  group_id: 50
