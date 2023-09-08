@@ -75,9 +75,14 @@ ScuImagePath = IMAGE_PATH / "scu"
 ScuImageGayPath = ScuImagePath / "gay"
 CardCountPath = ScuDataPath / "card_count.json"
 MainConfigPath = ScuDataPath / "config.yml"
+CardDictPath = ScuDataPath / "card_dict.json"
 
 if not os.path.exists(MainConfigPath):
     config = """
+percent:
+  r: '25.0'
+  sr: '10.0'
+  ssr: '2.0'
 show:
   card_all: true
   list: true
@@ -86,6 +91,9 @@ show:
 """
     with open(MainConfigPath, "w", encoding="utf-8") as f:
         yaml.dump(yaml.load(config, Loader=yaml.FullLoader), f)
+if not os.path.exists(CardDictPath):
+    with open(CardDictPath, "w", encoding="utf-8") as f:
+        f.write(r"{}")
 count = {
     "n": 0,
     "r": 0,
@@ -127,8 +135,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         ValuePercent = f"{int(value / len(content) * 10000) / 100}"
         NewDict[key] = f"{ValuePercent}%"
         if len(msg) >= 2:
-            with open(MainConfigPath, "r", encoding="utf-8") as mcf:
-                percent_conf = yaml.load(mcf, Loader=yaml.FullLoader)
+            with open(MainConfigPath, "r", encoding="utf-8") as mcp:
+                conf = yaml.load(mcp, Loader=yaml.FullLoader)
+            with open(CardDictPath, "r", encoding="utf-8") as cdp:
+                CustomCard = json.load(cdp)
             if msg[0] == "稀有度":
                 if isinstance(event, GroupMessageEvent):
                     if not await LevelUser.check_level(
@@ -140,24 +150,32 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                             f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')}",
                             at_sender=False
                         )
-                if msg[1] == "查询":
-                    result = f'ssr：{percent_conf["percent"]["ssr"]} | sr：{percent_conf["percent"]["sr"]} | r：{percent_conf["percent"]["r"]}'
+                if msg[1] == "调整":
+                    if len(msg) < 4:
+                        await quotations.finish("发生错误！code:10001")
+                    CustomCard[msg[2]] = msg[3]
+                elif msg[1] == "查询":
+                    result = f'ssr：{conf["percent"]["ssr"]}% | sr：{conf["percent"]["sr"]}% | r：{conf["percent"]["r"]}%'
                     await quotations.finish(result)
                 if msg[1] in ["ssr", "SSR"]:
-                    percent_conf["percent"]["ssr"] = msg[2]
+                    conf["percent"]["ssr"] = msg[2]
                 if msg[1] in ["sr", "SR"]:
-                    percent_conf["percent"]["sr"] = msg[2]
+                    conf["percent"]["sr"] = msg[2]
                 if msg[1] in ["r", "R"]:
-                    percent_conf["percent"]["r"] = msg[2]
-                with open(MainConfigPath, "w", encoding="utf-8") as mcf:
-                    yaml.dump(percent_conf, mcf)
+                    conf["percent"]["r"] = msg[2]
+                with open(MainConfigPath, "w", encoding="utf-8") as mcp:
+                    yaml.dump(conf, mcp)
+                with open(CardDictPath, "w", encoding="utf-8") as cdp:
+                    json.dump(CustomCard, cdp, ensure_ascii=False)
                 await quotations.finish("已成功调整稀有度！")
 
-        with open(MainConfigPath) as mcf:
-            percent_conf = yaml.load(mcf, Loader=yaml.FullLoader)
-        percent_ssr = percent_conf["percent"]["ssr"]
-        percent_sr = percent_conf["percent"]["sr"]
-        percent_r = percent_conf["percent"]["r"]
+        with open(MainConfigPath, "r", encoding="utf-8") as mcp:
+            conf = yaml.load(mcp, Loader=yaml.FullLoader)
+        with open(CardDictPath, "r", encoding="utf-8") as cdp:
+            CustomCard = json.load(cdp)
+        percent_ssr = conf["percent"]["ssr"]
+        percent_sr = conf["percent"]["sr"]
+        percent_r = conf["percent"]["r"]
         if float(ValuePercent) <= float(percent_ssr):
             ssr.append(key)
         elif float(ValuePercent) <= float(percent_sr):
@@ -166,14 +184,51 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             r.append(key)
         else:
             n.append(key)
-        if not "晨于曦Asahi" in n:
-            n.append("晨于曦Asahi")
-            if "晨于曦Asahi" in r:
-                r.remove("晨于曦Asahi")
-            elif "晨于曦Asahi" in sr:
-                sr.remove("晨于曦Asahi")
-            elif "晨于曦Asahi" in ssr:
-                ssr.remove("晨于曦Asahi")
+        for author,card_valve in CustomCard.items():
+            if card_valve in ["n", "N"]:
+                if not author in n:
+                    n.append(author)
+                if author in r:
+                    r.remove(author)
+                elif author in sr:
+                    sr.remove(author)
+                elif author in ssr:
+                    ssr.remove(author)
+            elif card_valve in ["r", "R"]:
+                if not author in r:
+                    r.append(author)
+                if author in n:
+                    n.remove(author)
+                elif author in sr:
+                    sr.remove(author)
+                elif author in ssr:
+                    ssr.remove(author)
+            elif card_valve in ["sr", "SR"]:
+                if not author in sr:
+                    sr.append(author)
+                if author in r:
+                    r.remove(author)
+                elif author in n:
+                    n.remove(author)
+                elif author in ssr:
+                    ssr.remove(author)
+            elif card_valve in ["ssr", "SSR"]:
+                if not author in ssr:
+                    ssr.append(author)
+                if author in r:
+                    r.remove(author)
+                elif author in sr:
+                    sr.remove(author)
+                elif author in n:
+                    n.remove(author)
+            # if not "晨于曦Asahi" in n:
+            #     n.append("晨于曦Asahi")
+            #     if "晨于曦Asahi" in r:
+            #         r.remove("晨于曦Asahi")
+            #     elif "晨于曦Asahi" in sr:
+            #         sr.remove("晨于曦Asahi")
+            #     elif "晨于曦Asahi" in ssr:
+            #         ssr.remove("晨于曦Asahi")
         if key in n:
             n_all += int(value)
         elif key in r:
