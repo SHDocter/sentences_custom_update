@@ -126,11 +126,43 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     for key,value in Dict.items():
         ValuePercent = f"{int(value / len(content) * 10000) / 100}"
         NewDict[key] = f"{ValuePercent}%"
-        if float(ValuePercent) <= 2.0:
+        if len(msg) >= 2:
+            with open(MainConfigPath, "r", encoding="utf-8") as mcf:
+                percent_conf = yaml.load(mcf, Loader=yaml.FullLoader)
+            if msg[0] == "稀有度":
+                if isinstance(event, GroupMessageEvent):
+                    if not await LevelUser.check_level(
+                        event.user_id,
+                        event.group_id,
+                        Config.get_config("gay_quotations", "SCU_DRAW_LEVEL"),
+                    ):
+                        await quotations.finish(
+                            f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')}",
+                            at_sender=False
+                        )
+                if msg[1] == "查询":
+                    result = f'ssr：{percent_conf["percent"]["ssr"]} | sr：{percent_conf["percent"]["sr"]} | r：{percent_conf["percent"]["r"]}'
+                    await quotations.finish(result)
+                if msg[1] in ["ssr", "SSR"]:
+                    percent_conf["percent"]["ssr"] = msg[2]
+                if msg[1] in ["sr", "SR"]:
+                    percent_conf["percent"]["sr"] = msg[2]
+                if msg[1] in ["r", "R"]:
+                    percent_conf["percent"]["r"] = msg[2]
+                with open(MainConfigPath, "w", encoding="utf-8") as mcf:
+                    yaml.dump(percent_conf, mcf)
+                await quotations.finish("已成功调整稀有度！")
+
+        with open(MainConfigPath) as mcf:
+            percent_conf = yaml.load(mcf, Loader=yaml.FullLoader)
+        percent_ssr = percent_conf["percent"]["ssr"]
+        percent_sr = percent_conf["percent"]["sr"]
+        percent_r = percent_conf["percent"]["r"]
+        if float(ValuePercent) <= float(percent_ssr):
             ssr.append(key)
-        elif float(ValuePercent) <= 10.0:
+        elif float(ValuePercent) <= float(percent_sr):
             sr.append(key)
-        elif float(ValuePercent) <= 25.0:
+        elif float(ValuePercent) <= float(percent_r):
             r.append(key)
         else:
             n.append(key)
