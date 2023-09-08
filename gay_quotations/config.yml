@@ -1,4 +1,8 @@
 'group_id': 50
+percent:
+  ssr: '2.0'
+  sr: '10.0'
+  r: '25.0'
 show:
   card_all: true
   list: true
