@@ -59,6 +59,18 @@ __plugin_configs__ = {
         "default_value": 5,
         "type": int,
     },
+    "SCU_CHANGE_CARD_PERCENT": {
+        "value": 6,
+        "help": "群内调整卡池百分比需要的权限",
+        "default_value": 6,
+        "type": int,
+    },
+    "SCU_CHANGE_CARD_USER": {
+        "value": 6,
+        "help": "群内调整角色卡池需要的权限",
+        "default_value": 6,
+        "type": int,
+    }
 }
 __plugin_cd_limit__ = {
     "cd": 10,                # 限制 cd 时长
@@ -143,23 +155,33 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             with open(CardDictPath, "r", encoding="utf-8") as cdp:
                 CustomCard = json.load(cdp)
             if msg[0] == "稀有度":
-                if isinstance(event, GroupMessageEvent):
-                    if not await LevelUser.check_level(
-                        event.user_id,
-                        event.group_id,
-                        Config.get_config("gay_quotations", "SCU_DRAW_LEVEL"),
-                    ):
-                        await quotations.finish(
-                            f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_DRAW_LEVEL')}",
-                            at_sender=False
-                        )
                 if msg[1] == "调整":
                     if len(msg) < 4:
                         await quotations.finish("发生错误！code:10001")
+                    if isinstance(event, GroupMessageEvent):
+                        if not await LevelUser.check_level(
+                            event.user_id,
+                            event.group_id,
+                            Config.get_config("gay_quotations", "SCU_CHANGE_CARD_USER"),
+                        ):
+                            await quotations.finish(
+                                f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_CHANGE_CARD_USER')}",
+                                at_sender=False
+                            )
                     CustomCard[msg[2]] = msg[3]
                 elif msg[1] == "查询":
                     result = f'ssr：{conf["percent"]["ssr"]}% | sr：{conf["percent"]["sr"]}% | r：{conf["percent"]["r"]}%'
                     await quotations.finish(result)
+                if isinstance(event, GroupMessageEvent):
+                    if not await LevelUser.check_level(
+                        event.user_id,
+                        event.group_id,
+                        Config.get_config("gay_quotations", "SCU_CHANGE_CARD_PERCENT"),
+                    ):
+                        await quotations.finish(
+                            f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_CHANGE_CARD_PERCENT')}",
+                            at_sender=False
+                        )
                 if msg[1] in ["ssr", "SSR"]:
                     conf["percent"]["ssr"] = msg[2]
                 if msg[1] in ["sr", "SR"]:

@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.0.8-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.0.11-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -115,6 +115,10 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 楠桐语录新增手动调整稀有度，默认需要5级权限
 
 - 楠桐语录调整稀有度新增卡池调整，可单独指定某个人，默认需要5级权限
+
+- 细分楠桐语录权限组，将抽卡上限、调整卡池百分比、调整角色稀有度拆分为单独的配置项
+
+- 调整卡池百分比和角色稀有度的默认权限为6级（群管理的权限等级为5级，需要找超管修改用户的权限等级）
 
 #### 1.0.11 | 2023.9.4
 
