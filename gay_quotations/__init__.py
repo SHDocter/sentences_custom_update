@@ -124,7 +124,7 @@ if not CardCountPath.exists():
         json.dump(count, cc, ensure_ascii=False)
 
 @quotations.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
     f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将文件写入缓存
     n = []
@@ -211,6 +211,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             n.append(key)
         for author,card_valve in CustomCard.items():
             if card_valve in ["n", "N"]:
+                if author in n:
+                    n.remove(author)
                 if not author in n:
                     n.append(author)
                 if author in r:
@@ -220,6 +222,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 elif author in ssr:
                     ssr.remove(author)
             elif card_valve in ["r", "R"]:
+                if author in r:
+                    r.remove(author)
                 if not author in r:
                     r.append(author)
                 if author in n:
@@ -229,6 +233,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 elif author in ssr:
                     ssr.remove(author)
             elif card_valve in ["sr", "SR"]:
+                if author in sr:
+                    sr.remove(author)
                 if not author in sr:
                     sr.append(author)
                 if author in r:
@@ -238,6 +244,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 elif author in ssr:
                     ssr.remove(author)
             elif card_valve in ["ssr", "SSR"]:
+                if author in ssr:
+                    ssr.remove(author)
                 if not author in ssr:
                     ssr.append(author)
                 if author in r:
@@ -246,14 +254,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                     sr.remove(author)
                 elif author in n:
                     n.remove(author)
-            # if not "晨于曦Asahi" in n:
-            #     n.append("晨于曦Asahi")
-            #     if "晨于曦Asahi" in r:
-            #         r.remove("晨于曦Asahi")
-            #     elif "晨于曦Asahi" in sr:
-            #         sr.remove("晨于曦Asahi")
-            #     elif "晨于曦Asahi" in ssr:
-            #         ssr.remove("晨于曦Asahi")
         if key in n:
             n_all += int(value)
         elif key in r:
@@ -303,6 +303,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     elif len(msg) >= 1:
         SentenceCheck = msg[0]
         DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck)
+        # UpPoolRegex = re.match(r"(up|UP)池", SentenceCheck)
         if SentenceCheck in ["配置上限", "修改上限"]:
             if isinstance(event, GroupMessageEvent):
                 if not await LevelUser.check_level(
@@ -331,6 +332,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             DrawAuthor = msg[1]
             Draw = 1
             DrawAuthorCount = 0
+            msg_list = []
             while Draw == 1:
                 data = (await AsyncHttpx.get(url, timeout=10)).json()
                 DrawAuthorCount += 1
@@ -340,6 +342,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                     break
             if DrawAuthorCount == 1000:
                 result = f"抽了{DrawAuthorCount}次都没抽到，你真是个非酋"
+                await quotations.send(result)
             else:
                 result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]} | 抽取次数：{DrawAuthorCount}'
             await quotations.send(result)
@@ -369,7 +372,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             elif int(DrawCount) > int(MaxCount):
                 await quotations.finish(f"孩子塞不下辣，最多只能塞{MaxCount}发!")
 
-            data = []
+            msg_list = []
             MaxDrawCount = 500
             for i in range(int(DrawCount)):
                 Draw = 1
@@ -382,19 +385,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                         break
                     elif DrawAuthorCount == int(MaxDrawCount):
                         break
-                result = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]} | 抽取次数：{DrawAuthorCount}'
-                data.append(result)
+                data = {
+            "type": "node",
+            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]} | 抽取次数：{DrawAuthorCount}'},
+        }
+                msg_list.append(data)
 
             if DrawAuthorCount == int(MaxDrawCount):
                 result = f"抽了{MaxDrawCount * DrawCount}次都没抽到，你真是个非酋"
+                await quotations.send(result)
             else:
-                result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "")
+                await bot.send_group_forward_msg(group_id=event.group_id, messages=msg_list)
             
-            await quotations.send(result)
-            logger.info(
-                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
-                + str(result)
-            )
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
 
@@ -476,11 +478,11 @@ SSR：{ssr} | {ssr_all}条
 累计抽卡：{CardCount} 
 累计概率：{DrawPercent}
 统计区间：2023.07.29 15:00 - {datetime.datetime.now().strftime('%Y.%m.%d %H:%M')}"""
-            await quotations.send(result)
-            logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录查询:"
-        + result
-    )
+            data = {
+            "type": "node",
+            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": result},
+        }
+            await bot.send_group_forward_msg(group_id=event.group_id, messages=data)
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
 
@@ -533,7 +535,7 @@ SSR：{ssr} | {ssr_all}条
             elif int(DrawCount) > int(MaxCount):
                 await quotations.finish(f"孩子塞不下辣，最多只能塞{MaxCount}发!")
 
-            data = []
+            msg_list = []
             card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
 
             for i in range(int(DrawCount)):
@@ -565,24 +567,30 @@ SSR：{ssr} | {ssr_all}条
                     card_ssr
                 if text["from_who"] not in CardPool:
                     card = ""
-                hitokoto = f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'
-                data.append(hitokoto)
+                data = {
+            "type": "node",
+            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'},
+        }
+                msg_list.append(data)
 
             with open(CardCountPath,'w',encoding='utf-8') as f:
                 json.dump(CountList, f,ensure_ascii=False)
-            result = str(data).replace("[", "").replace("]", "").replace(", ", "\n").replace("'", "") + f"\n\n汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"
-            await quotations.send(result)
-            logger.info(
-                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
-                + str(result)
-            )
+            result = {
+            "type": "node",
+            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f"汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"},
+        }
+            msg_list.append(result)
+            await bot.send_group_forward_msg(group_id=event.group_id, messages=msg_list)
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
+        # elif UpPoolRegex:
+        #     while True:
+        #         break
         else:
             await quotations.finish("参数有误,code:10404，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
     else:
-        await quotations.finish("参数有误,code:20001，请使用'帮助楠桐语录'查看帮助...")
+        await quotations.finish("参数有误,code:10001，请使用'帮助楠桐语录'查看帮助...")
         flush = gc.collect()
         print(f"已成功清理内存：{flush}")
