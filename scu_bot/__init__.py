@@ -97,7 +97,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             with open("custom_plugins/scu_bot/count.txt", "w") as t:
                 t.write(str(count))
         elif int(count) > 1:
-            result = image("custom_plugins/scu_bot/1.jpg")
+            result = image("scu/1.jpg")
             await UploadSentence.send(result)
             os.remove("custom_plugins/scu_bot/count.txt")
             os.remove("custom_plugins/scu_bot/user.json")
