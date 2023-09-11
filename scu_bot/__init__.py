@@ -91,11 +91,11 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     if f"{event.user_id}" == user["user_id"]:
         with open("custom_plugins/scu_bot/count.txt", "r") as t:
             count = int(t.read())
-        if int(count) <= 2:
+        if int(count) <= 1:
             count += 1
             with open("custom_plugins/scu_bot/count.txt", "w") as t:
                 t.write(str(count))
-        elif int(count) > 2:
+        elif int(count) > 1:
             await UploadSentence.send("你有点集端了")
             os.remove("custom_plugins/scu_bot/count.txt")
             os.remove("custom_plugins/scu_bot/user.json")
