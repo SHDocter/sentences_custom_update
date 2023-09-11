@@ -8,6 +8,7 @@ from services.log import logger
 # from configs.config import Config
 from nonebot.typing import T_State
 from nonebot.params import CommandArg
+from utils.message_builder import image
 from utils.utils import get_message_img, get_message_text
 from utils.http_utils import AsyncHttpx
 # from models.level_user import LevelUser
@@ -96,7 +97,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             with open("custom_plugins/scu_bot/count.txt", "w") as t:
                 t.write(str(count))
         elif int(count) > 1:
-            await UploadSentence.send("你有点集端了")
+            result = image("custom_plugins/scu_bot/1.jpg")
+            await UploadSentence.send(result)
             os.remove("custom_plugins/scu_bot/count.txt")
             os.remove("custom_plugins/scu_bot/user.json")
         else:
