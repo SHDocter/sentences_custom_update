@@ -86,7 +86,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             json.dump(text, u, ensure_ascii=False)
     if not os.path.exists("custom_plugins/scu_bot/count.txt"):
         with open("custom_plugins/scu_bot/count.txt", "w") as t:
-            t.write("1")
+            t.write("0")
     with open("custom_plugins/scu_bot/user.json", "r", encoding="utf-8") as u:
         user = json.load(u)
     if f"{event.user_id}" == user["user_id"]:
@@ -96,16 +96,19 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             count += 1
             with open("custom_plugins/scu_bot/count.txt", "w") as t:
                 t.write(str(count))
-        elif int(count) > 1:
+        if int(count) >= 2:
             result = image("scu/1.jpg")
+            print("debug")
             await UploadSentence.send(result)
             os.remove("custom_plugins/scu_bot/count.txt")
             os.remove("custom_plugins/scu_bot/user.json")
-        else:
-            await UploadSentence.send("好像哪里出了问题")
     else:
         os.remove("custom_plugins/scu_bot/count.txt")
         os.remove("custom_plugins/scu_bot/user.json")
+        with open("custom_plugins/scu_bot/user.json", "w", encoding="utf-8") as u:
+            json.dump(text, u, ensure_ascii=False)
+        with open("custom_plugins/scu_bot/count.txt", "w") as t:
+            t.write("1")
 
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
