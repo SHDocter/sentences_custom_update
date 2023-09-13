@@ -148,6 +148,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                             author = key
                 else:
                     author = reply["sender"]["nickname"]
+                    for key,value in UserDict.items():
+                        if value == author:
+                            author = key
             except:
                 await UploadSentence.finish("作者获取异常！")
             # if author == "小丑竟是我自己":
