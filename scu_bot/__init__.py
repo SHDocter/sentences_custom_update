@@ -24,7 +24,7 @@ usage：
         [回复] 上传语录 语录名称 语录作者（如不填写作者将默认为群名称）
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
-        上传语录 字典 作者（保存在语录中的名字） 别名 | 该命令将会为指定的作者添加一个别名，目前仅在上传语录时可直接写别名而不需要写全名
+        上传语录 字典 作者（保存在语录中的名字） 别名 该命令将会为指定的作者添加一个别名 | [回复] 上传语录 字典 作者 该命令将会把回复的人的群id作为别名
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         
@@ -36,7 +36,7 @@ usage：
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
         例：[回复] 上传语录 楠桐 晨于曦Asahi
         例：上传图片 楠桐 [图片] | [回复] 上传图片 楠桐
-        例：上传语录 字典 晨于曦Asahi 小晨
+        例：上传语录 字典 晨于曦Asahi 小晨 | [回复] 上传语录 字典 桑吉Sage
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
@@ -95,15 +95,25 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     global author
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
-    user_key = msg[1]
-    user_value = msg[2]
-    if len(msg) < 3:
-        await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
     if SentenceName in ["字典"]:
-        UserDict[user_key] = f"{user_value}"
-        with open(UserDictPath, "w", encoding="utf-8") as ud:
-            json.dump(UserDict, ud, ensure_ascii=False)
-        await UploadSentence.finish(f"已成功将 {user_key} = {user_value} 添加至字典！")
+        if event.reply:
+            if len(msg) < 2:
+                await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+            reply = json.loads(event.reply.json())
+            user_key = msg[1]
+            UserDict[user_key] = f'{reply["sender"]["nickname"]}'
+            with open(UserDictPath, "w", encoding="utf-8") as ud:
+                json.dump(UserDict, ud, ensure_ascii=False)
+            await UploadSentence.finish(f'已成功将 {user_key} = {reply["sender"]["nickname"]} 添加至字典！')
+        else:
+            if len(msg) < 3:
+                await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+            user_key = msg[1]
+            user_value = msg[2]
+            UserDict[user_key] = f"{user_value}"
+            with open(UserDictPath, "w", encoding="utf-8") as ud:
+                json.dump(UserDict, ud, ensure_ascii=False)
+            await UploadSentence.finish(f"已成功将 {user_key} = {user_value} 添加至字典！")
     text = {"user_id": f"{event.user_id}"}
     if not os.path.exists("custom_plugins/scu_bot/user.json"):
         with open("custom_plugins/scu_bot/user.json", "w", encoding="utf-8") as u:
