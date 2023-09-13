@@ -11,6 +11,7 @@ from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.utils import get_message_img, get_message_text
 from utils.http_utils import AsyncHttpx
+from configs.path_config import DATA_PATH, IMAGE_PATH
 # from models.level_user import LevelUser
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
 
@@ -23,6 +24,7 @@ usage：
         [回复] 上传语录 语录名称 语录作者（如不填写作者将默认为群名称）
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
+        上传语录 字典 作者（保存在语录中的名字） 别名 | 该命令将会为指定的作者添加一个别名，目前仅在上传语录时可直接写别名而不需要写全名
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         
@@ -34,10 +36,11 @@ usage：
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
         例：[回复] 上传语录 楠桐 晨于曦Asahi
         例：上传图片 楠桐 [图片] | [回复] 上传图片 楠桐
+        例：上传语录 字典 晨于曦Asahi 小晨
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.11"
+__plugin_version__ = "1.0.12"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -56,10 +59,20 @@ __plugin_configs__ = {
     },
 }
 
+ScuDataPath = DATA_PATH / "scu"
+ScuImagePath = IMAGE_PATH / "scu"
+UserDictPath = ScuDataPath / "user_dict.json"
+
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
 ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
+
+if not os.path.exists(UserDictPath):
+    with open(UserDictPath, "w", encoding="utf-8") as ud:
+        ud.write(r"{}")
+with open(UserDictPath, "r", encoding="utf-8") as ud:
+    UserDict = json.load(ud)
 
 @ReloadSentences.handle()
 async def _():
@@ -80,6 +93,17 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     global SentenceName
     global sentence
     global author
+    msg = arg.extract_plain_text().strip().split()
+    SentenceName = msg[0]
+    user_key = msg[1]
+    user_value = msg[2]
+    if len(msg) < 3:
+        await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+    if SentenceName in ["字典"]:
+        UserDict[user_key] = f"{user_value}"
+        with open(UserDictPath, "w", encoding="utf-8") as ud:
+            json.dump(UserDict, ud, ensure_ascii=False)
+        await UploadSentence.finish(f"已成功将 {user_key} = {user_value} 添加至字典！")
     text = {"user_id": f"{event.user_id}"}
     if not os.path.exists("custom_plugins/scu_bot/user.json"):
         with open("custom_plugins/scu_bot/user.json", "w", encoding="utf-8") as u:
@@ -110,8 +134,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         with open("custom_plugins/scu_bot/count.txt", "w") as t:
             t.write("1")
 
-    msg = arg.extract_plain_text().strip().split()
-    SentenceName = msg[0]
     if event.reply:
         reply = json.loads(event.reply.json())
         OriginSentence = str(get_message_text(event.reply.json()))
@@ -121,14 +143,17 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             try:
                 if len(msg) >= 2:
                     author = str(msg[1])
+                    for key,value in UserDict.items():
+                        if value == author:
+                            author = key
                 else:
                     author = reply["sender"]["nickname"]
             except:
                 await UploadSentence.finish("作者获取异常！")
-            if author == "小丑竟是我自己":
-                author = "桑吉Sage"
-            elif author == "冰蓝艾思博录":
-                author = "毕方"
+            # if author == "小丑竟是我自己":
+            #     author = "桑吉Sage"
+            # elif author == "冰蓝艾思博录":
+            #     author = "毕方"
 
         if SentenceName in ["桑吉","羽月","楠桐","小晨","语录","桑吉语录","羽月语录","楠桐语录","小晨语录","语录合集"]:
             if SentenceName in ["楠桐","楠桐语录","语录","语录合集"]:
@@ -172,6 +197,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
             try:
                 author = msg[2]
+                for key,value in UserDict.items():
+                    if value == author:
+                        author = key
             except:
                 await UploadSentence.finish("作者获取异常！")
 
