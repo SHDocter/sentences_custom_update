@@ -96,8 +96,6 @@ UserDictPath = ScuDataPath / "user_dict.json"
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
         ud.write(r"{}")
-with open(UserDictPath, "r", encoding="utf-8") as ud:
-    UserDict = json.load(ud)
 
 if not os.path.exists(MainConfigPath):
     config = """
@@ -132,6 +130,8 @@ if not CardCountPath.exists():
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    with open(UserDictPath, "r", encoding="utf-8") as ud:
+        UserDict = json.load(ud)
     msg = arg.extract_plain_text().strip().split()
     f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将文件写入缓存
     n = []
@@ -177,8 +177,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                             )
                     author = str(msg[2])
                     for key,value in UserDict.items():
-                        if value == author:
-                            author = key
+                        if key == author:
+                            author = value
                     CustomCard[author] = msg[3]
                 elif msg[1] == "查询":
                     result = f'ssr：{conf["percent"]["ssr"]}% | sr：{conf["percent"]["sr"]}% | r：{conf["percent"]["r"]}%'
@@ -337,8 +337,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         elif SentenceCheck in ["限定", "指定"]:
             DrawAuthor = msg[1]
             for key,value in UserDict.items():
-                if value == DrawAuthor:
-                    DrawAuthor = key
+                if key == DrawAuthor:
+                    DrawAuthor = value
             DrawAuthorCount = 0
             msg_list = []
             while True:
@@ -383,8 +383,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 DrawAuthorCount = 0
                 DrawAuthor = msg[1]
                 for key,value in UserDict.items():
-                    if value == DrawAuthor:
-                        DrawAuthor = key
+                    if key == DrawAuthor:
+                        DrawAuthor = value
                 while True:
                     text = (await AsyncHttpx.get(url, timeout=10)).json()
                     DrawAuthorCount += 1
