@@ -99,7 +99,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     if SentenceName in ["字典"]:
         if len(msg) > 1:
             if msg[1] in ["查询"]:
-                result = '当前字典：\n' + str(UserDict).replace("{", "").replace("}", "").replace(":", " = ").replace("'", "").replace(", ", "\n")
+                result = str(UserDict).replace("{", "").replace("}", "").replace(":", " = ").replace("'", "").replace(", ", "\n")
                 await UploadSentence.finish(result)
         if event.reply:
             if len(msg) < 2:
