@@ -88,9 +88,16 @@ CheckUrl = "http://sentence.osttsstudio.ltd:9000/c.json"
 ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
 ScuImageGayPath = ScuImagePath / "gay"
-CardCountPath = ScuDataPath / "card_count.json"
 MainConfigPath = ScuDataPath / "config.yml"
+CardCountPath = ScuDataPath / "card_count.json"
 CardDictPath = ScuDataPath / "card_dict.json"
+UserDictPath = ScuDataPath / "user_dict.json"
+
+if not os.path.exists(UserDictPath):
+    with open(UserDictPath, "w", encoding="utf-8") as ud:
+        ud.write(r"{}")
+with open(UserDictPath, "r", encoding="utf-8") as ud:
+    UserDict = json.load(ud)
 
 if not os.path.exists(MainConfigPath):
     config = """
@@ -168,7 +175,11 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                                 f"发生错误！code:1012{Config.get_config('gay_quotations', 'SCU_CHANGE_CARD_USER')}",
                                 at_sender=False
                             )
-                    CustomCard[msg[2]] = msg[3]
+                    author = str(msg[2])
+                    for key,value in UserDict.items():
+                        if value == author:
+                            author = key
+                    CustomCard[author] = msg[3]
                 elif msg[1] == "查询":
                     result = f'ssr：{conf["percent"]["ssr"]}% | sr：{conf["percent"]["sr"]}% | r：{conf["percent"]["r"]}%'
                     await quotations.finish(result)
@@ -318,38 +329,31 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             MaxDrawCountLoad[f"{event.group_id}"] = int(msg[1])
             with open(MainConfigPath,'w',encoding='utf-8') as f:
                 yaml.dump(MaxDrawCountLoad, f)
-
-            MaxCountError = 30
-            if int(msg[1]) > int(MaxCountError):
-                result = f"已成功配置抽卡上限为{msg[1]}，警告！超过 {MaxCountError} 将会使bot发送过长的消息，存在被风控的风险！"
-            else:
-                result = f"已成功配置抽卡上限为{msg[1]}"
+            result = f"已成功配置抽卡上限为{msg[1]}发"
             logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 配置楠桐语录抽卡上限:{msg[1]}"
     )
             await quotations.send(result)
         elif SentenceCheck in ["限定", "指定"]:
             DrawAuthor = msg[1]
-            Draw = 1
+            for key,value in UserDict.items():
+                if value == DrawAuthor:
+                    DrawAuthor = key
             DrawAuthorCount = 0
             msg_list = []
-            while Draw == 1:
+            while True:
                 data = (await AsyncHttpx.get(url, timeout=10)).json()
                 DrawAuthorCount += 1
                 if data["from_who"] == DrawAuthor:
                     break
-                elif DrawAuthorCount == 1000:
+                elif DrawAuthorCount == 500:
                     break
-            if DrawAuthorCount == 1000:
+            if DrawAuthorCount == 500:
                 result = f"抽了{DrawAuthorCount}次都没抽到，你真是个非酋"
                 await quotations.send(result)
             else:
                 result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]} | 抽取次数：{DrawAuthorCount}'
             await quotations.send(result)
-            logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
-            + result
-        )
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
         elif re.match(r"(限定|指定)([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck):
@@ -357,9 +361,10 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 MaxCount = MaxDrawCountLoad[f"{event.group_id}"]
             except:
                 MaxDrawCountLoad[f"{event.group_id}"] = 50
+                MaxCount = 50
                 with open(MainConfigPath,'w',encoding='utf-8') as f:
                     yaml.dump(MaxDrawCountLoad, f)
-                await quotations.finish("未配置抽卡上限，已默认配置为50发，请重新抽取！")
+                await quotations.send("未配置抽卡上限，已默认配置为50发！")
             DrawCount = SentenceCheck
             if not SentenceCheck in ["限定抽", "限定抽卡", "限定单抽"]:
                 DrawCount = str(SentenceCheck).replace("限定", "").replace("抽", "")
@@ -375,10 +380,12 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             msg_list = []
             MaxDrawCount = 500
             for i in range(int(DrawCount)):
-                Draw = 1
                 DrawAuthorCount = 0
                 DrawAuthor = msg[1]
-                while Draw == 1:
+                for key,value in UserDict.items():
+                    if value == DrawAuthor:
+                        DrawAuthor = key
+                while True:
                     text = (await AsyncHttpx.get(url, timeout=10)).json()
                     DrawAuthorCount += 1
                     if text["from_who"] == DrawAuthor:
@@ -520,9 +527,10 @@ SSR：{ssr} | {ssr_all}条
                 MaxCount = MaxDrawCountLoad[f"{event.group_id}"]
             except:
                 MaxDrawCountLoad[f"{event.group_id}"] = 50
+                MaxCount = 50
                 with open(MainConfigPath,'w',encoding='utf-8') as f:
                     yaml.dump(MaxDrawCountLoad, f)
-                await quotations.finish("未配置抽卡上限，已默认配置为50发，请重新抽取！")
+                await quotations.send("未配置抽卡上限，已默认配置为50发！")
             DrawCount = SentenceCheck
             if not SentenceCheck in ["抽", "抽卡", "单抽"]:
                 DrawCount = str(SentenceCheck).replace("抽", "")
