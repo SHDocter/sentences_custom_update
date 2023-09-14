@@ -41,7 +41,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.13"
+__plugin_version__ = "1.0.14"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -72,8 +72,6 @@ ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
         ud.write(r"{}")
-with open(UserDictPath, "r", encoding="utf-8") as ud:
-    UserDict = json.load(ud)
 
 @ReloadSentences.handle()
 async def _():
@@ -94,6 +92,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     global SentenceName
     global sentence
     global author
+    with open(UserDictPath, "r", encoding="utf-8") as ud:
+        UserDict = json.load(ud)
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
     if SentenceName in ["字典"]:
@@ -106,16 +106,16 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
             reply = json.loads(event.reply.json())
             user_key = msg[1]
-            UserDict[user_key] = f'{reply["sender"]["nickname"]}'
+            UserDict[f'{reply["sender"]["nickname"]}'] = user_key
             with open(UserDictPath, "w", encoding="utf-8") as ud:
                 json.dump(UserDict, ud, ensure_ascii=False)
-            await UploadSentence.finish(f'已成功将 {user_key} = {reply["sender"]["nickname"]} 添加至字典！')
+            await UploadSentence.finish(f'已成功将 {reply["sender"]["nickname"]} = {user_key} 添加至字典！')
         else:
             if len(msg) < 3:
                 await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
             user_key = msg[1]
             user_value = msg[2]
-            UserDict[user_key] = f"{user_value}"
+            UserDict[f"{user_value}"] = user_key
             with open(UserDictPath, "w", encoding="utf-8") as ud:
                 json.dump(UserDict, ud, ensure_ascii=False)
             await UploadSentence.finish(f"已成功将 {user_key} = {user_value} 添加至字典！")
@@ -159,13 +159,13 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 if len(msg) >= 2:
                     author = str(msg[1])
                     for key,value in UserDict.items():
-                        if value == author:
-                            author = key
+                        if key == author:
+                            author = value
                 else:
                     author = reply["sender"]["nickname"]
                     for key,value in UserDict.items():
-                        if value == author:
-                            author = key
+                        if key == author:
+                            author = value
             except:
                 await UploadSentence.finish("作者获取异常！")
             # if author == "小丑竟是我自己":
@@ -216,8 +216,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             try:
                 author = msg[2]
                 for key,value in UserDict.items():
-                    if value == author:
-                        author = key
+                    if key == author:
+                        author = value
             except:
                 await UploadSentence.finish("作者获取异常！")
 

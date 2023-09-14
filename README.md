@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.0.13-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.0.14-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -137,6 +137,14 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 楠桐语录未配置抽卡上限时触发n抽：配置为50抽并停止抽卡 => 配置为50抽并继续抽卡
 
 - 楠桐语录限定卡池适配字典
+
+- 修复新增字典后楠桐语录不会加载新键值对的问题
+
+- 适配新的字典
+
+#### 1.0.14 | 2023.9.14
+
+- 调换字典的键值对，现在一个作者可以有多个别名了
 
 #### 1.0.13 | 2023.9.14
 
