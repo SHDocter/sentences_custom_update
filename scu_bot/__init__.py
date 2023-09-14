@@ -25,6 +25,7 @@ usage：
         上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
         上传语录 字典 作者（保存在语录中的名字） 别名 该命令将会为指定的作者添加一个别名 | [回复] 上传语录 字典 作者 该命令将会把回复的人的群id作为别名
+        上传语录 字典 查询
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         
@@ -40,7 +41,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.12"
+__plugin_version__ = "1.0.13"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -96,6 +97,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
     if SentenceName in ["字典"]:
+        if len(msg) > 1:
+            if msg[1] in ["查询"]:
+                result = '当前字典：\n' + str(UserDict).replace("{", "").replace("}", "").replace(":", " = ").replace("'", "").replace(",", "，")
+                await UploadSentence.finish(result)
         if event.reply:
             if len(msg) < 2:
                 await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
