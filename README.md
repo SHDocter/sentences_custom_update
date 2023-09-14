@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.0.11-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.0.13-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
