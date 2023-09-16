@@ -5,14 +5,14 @@ import uuid
 import datetime
 from nonebot import on_command
 from services.log import logger
-# from configs.config import Config
+from configs.config import Config
 from nonebot.typing import T_State
 from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.utils import get_message_img, get_message_text
 from utils.http_utils import AsyncHttpx
 from configs.path_config import DATA_PATH, IMAGE_PATH
-# from models.level_user import LevelUser
+from models.level_user import LevelUser
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
 
 __zx_plugin_name__ = "上传语录"
@@ -26,6 +26,7 @@ usage：
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
         上传语录 字典 作者（保存在语录中的名字） 别名 该命令将会为指定的作者添加一个别名 | [回复] 上传语录 字典 作者 该命令将会把回复的人的群id作为别名
         上传语录 字典 查询
+        上传语录 黑名单 添加/删除 作者/别名 在黑名单的id将无法上传至语录，默认6级权限
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         
@@ -41,7 +42,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.14"
+__plugin_version__ = "1.0.15"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -58,11 +59,18 @@ __plugin_configs__ = {
         "default_value": 5,
         "type": int,
     },
+    "SCU_BLACKLIST_LEVEL": {
+        "value": 6,
+        "help": "群内调整黑名单需要的权限",
+        "default_value": 6,
+        "type": int,
+    }
 }
 
 ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
 UserDictPath = ScuDataPath / "user_dict.json"
+BlackListPath = ScuDataPath / "blacklist.txt"
 
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
@@ -72,6 +80,9 @@ ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
         ud.write(r"{}")
+if not os.path.exists(BlackListPath):
+    with open(BlackListPath, "w", encoding="utf-8") as blp:
+        blp.write("[]")
 
 @ReloadSentences.handle()
 async def _():
@@ -94,8 +105,43 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     global author
     with open(UserDictPath, "r", encoding="utf-8") as ud:
         UserDict = json.load(ud)
+    with open(BlackListPath, "w", encoding="utf-8") as blp:
+        BlackList = list(blp.readline())
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
+    if SentenceName in ["黑名单"]:
+        if isinstance(event, GroupMessageEvent):
+            if not await LevelUser.check_level(
+                event.user_id,
+                event.group_id,
+                Config.get_config("scu_bot", "SCU_BLACKLIST_LEVEL"),
+            ):
+                await UploadSentence.finish(
+                    f"发生错误！code:1012{Config.get_config('scu_bot', 'SCU_BLACKLIST_LEVEL')}",
+                    at_sender=False
+                )
+        if len(msg) < 3:
+            await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+        author = str(msg[2])
+        for key,value in UserDict.items():
+            if key == author:
+                author = value
+        if msg[1] == "添加":
+            if author in BlackList:
+                await UploadSentence.finish(f"{author}已存在！")
+            else:
+                BlackList.append(author)
+                with open(BlackListPath, "w", encoding="utf-8") as blp:
+                    blp.write(BlackList)
+                await UploadSentence.finish(f"以成功添加{author}至黑名单！")
+        if msg[1] == "删除":
+            if not author in BlackList:
+                await UploadSentence.finish(f"黑名单中未找到{author}！")
+            else:
+                BlackList.remove(author)
+                with open(BlackListPath, "w", encoding="utf-8") as blp:
+                    blp.write(BlackList)
+                await UploadSentence.finish(f"以成功将{author}从黑名单中删除！")
     if SentenceName in ["字典"]:
         if len(msg) > 1:
             if msg[1] in ["查询"]:
@@ -187,6 +233,11 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         else:
             await UploadSentence.finish("该语录不存在！")
         try:
+            with open(BlackListPath, "w", encoding="utf-8") as blp:
+                BlackList = list(blp.readline())
+            if author in BlackList:
+                result = f"{author}以被管理员封禁！"
+                await UploadSentence.finish(result)
             Upload()
             cmd = "custom_plugins/scu_bot/restart.sh"
             os.system(cmd)
@@ -236,6 +287,11 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             await UploadSentence.finish("该语录不存在！")
 
         try:
+            with open(BlackListPath, "w", encoding="utf-8") as blp:
+                BlackList = list(blp.readline())
+            if author in BlackList:
+                result = f"{author}以被管理员封禁！"
+                await UploadSentence.finish(result)
             Upload()
             cmd = "custom_plugins/scu_bot/restart.sh"
             os.system(cmd)
