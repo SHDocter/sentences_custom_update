@@ -27,6 +27,7 @@ usage：
         上传语录 字典 作者（保存在语录中的名字） 别名 该命令将会为指定的作者添加一个别名 | [回复] 上传语录 字典 作者 该命令将会把回复的人的群id作为别名
         上传语录 字典 查询
         上传语录 黑名单 添加/删除 作者/别名 在黑名单的id将无法上传至语录，默认6级权限（注：指这个id无法被上传至语录，而不是这个id不能上传语录）
+        上传语录 黑名单 查询
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         
@@ -42,7 +43,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.15"
+__plugin_version__ = "1.0.16"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -110,6 +111,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
     if SentenceName in ["黑名单"]:
+        if msg[1] == "查询":
+            result = f'当前黑名单：{str(BlackList).replace("[", "").replace("]", "").replace("'", "").replace(",", "，")}'
+            await UploadSentence.finish(result)
         if isinstance(event, GroupMessageEvent):
             if not await LevelUser.check_level(
                 event.user_id,
