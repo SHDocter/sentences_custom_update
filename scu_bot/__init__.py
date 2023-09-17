@@ -112,7 +112,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     SentenceName = msg[0]
     if SentenceName in ["黑名单"]:
         if msg[1] == "查询":
-            result = f'当前黑名单：{str(BlackList).replace("[", "").replace("]", "").replace("'", "").replace(",", "，")}'
+            result = f'当前黑名单：' + str(BlackList).replace("[", "").replace("]", "").replace("'", "").replace(",", "，")
             await UploadSentence.finish(result)
         if isinstance(event, GroupMessageEvent):
             if not await LevelUser.check_level(
