@@ -30,20 +30,24 @@ usage：
         上传语录 黑名单 查询
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
+        还原语录 语录名称 | 该命令会将语录库还原到上传最后一条语录之前，默认会在还原后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
         
         语录内容不能有空格
         图片不需要填写作者
         回复作者不是必填的，默认为群名称
+        还原语录功能的原理是恢复备份而不是删除元素，所以无论使用几次，都只会还原到上传最后一条语录之前
+        语录库中后缀为.bak的文件为还原的文件，后缀为.bak.1的文件为还原前的文件
         
         例：上传语录 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
         例：[回复] 上传语录 楠桐 晨于曦Asahi
         例：上传图片 楠桐 [图片] | [回复] 上传图片 楠桐
         例：上传语录 字典 晨于曦Asahi 小晨 | [回复] 上传语录 字典 桑吉Sage
+        例：还原语录 楠桐
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.0.16"
+__plugin_version__ = "1.1.0"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -56,7 +60,7 @@ __plugin_type__ = ("语录", 1)
 __plugin_configs__ = {
     "SCU_GROUP_LEVEL": {
         "value": 5,
-        "help": "群内上传语录需要的权限",
+        "help": "群内部分语录功能需要的权限",
         "default_value": 5,
         "type": int,
     },
@@ -65,6 +69,12 @@ __plugin_configs__ = {
         "help": "群内调整黑名单需要的权限",
         "default_value": 6,
         "type": int,
+    },
+    "SCU_AUTO_RELOAD": {
+        "value": True,
+        "help": "撤回语录后是否自动重载语录",
+        "default_value": True,
+        "type": bool,
     }
 }
 
@@ -77,6 +87,7 @@ UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
 ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
+RestoreSentence = on_command("还原语录", aliases={"还原语录"}, priority=5, block=True)
 
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
@@ -99,6 +110,51 @@ async def _():
     result = f"已收录语录：{SentencesList}"
     await CheckSentences.send(result)
 
+@RestoreSentence.handle()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().split()
+    if isinstance(event, GroupMessageEvent):
+        if not await LevelUser.check_level(
+            event.user_id,
+            event.group_id,
+            Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
+        ):
+            await UploadSentence.finish(
+                f"发生错误！code:1012{Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')}",
+                at_sender=False
+            )
+    if len(msg) < 1:
+        await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+    path = "/scu/"
+    SentencesFile = ""
+    if msg[0] in ["桑吉","桑吉语录"]:
+        SentencesFile = path + "a.json"
+    elif msg[0] in ["羽月","羽月语录"]:
+        SentencesFile = path + "b.json"
+    elif msg[0] in ["楠桐","楠桐语录"]:
+        SentencesFile = path + "c.json"
+    elif msg[0] in ["小晨","小晨语录"]:
+        SentencesFile = path + "d.json"
+    elif msg[0] in ["语录","语录合集"]:
+        SentencesFile = path + "e.json"
+    else:
+        UploadSentence.finish("还原的语录不存在！")
+
+    try:
+        os.system(f"cp -rf {SentencesFile} {SentencesFile}.bak.1")
+        os.system(f"cp -rf {SentencesFile}.bak {SentencesFile}")
+    except:
+        await UploadSentence.finish("还原过程中出现未知错误！")
+
+    if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
+        try:
+            os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
+        except:
+            await CheckSentences.finish("已成功还原语录，但重载发生错误！")
+        await UploadSentence.finish("已成功还原并重载语录！")
+    else:
+        await UploadSentence.finish("已成功还原语录，请手动重载语录！")
+
 @UploadSentence.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
     global SentenceName
@@ -110,6 +166,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         BlackList = json.load(blp)
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
+
     if SentenceName in ["黑名单"]:
         if msg[1] == "查询":
             result = f'当前黑名单：' + str(BlackList).replace("[", "").replace("]", "").replace("'", "").replace(",", "，")
@@ -229,6 +286,11 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                     result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
                 else:
                     result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
+                with open(BlackListPath, "r", encoding="utf-8") as blp:
+                    BlackList = json.load(blp)
+                if author in BlackList:
+                    result = f"{author}已被管理员封禁！"
+                    await UploadSentence.finish(result)
             else:
                 if SentenceName in ["桑吉","羽月","小晨"]:
                     result = f'已成功将{sentence}上传至{SentenceName}语录'
@@ -237,24 +299,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         else:
             await UploadSentence.finish("该语录不存在！")
 
-        with open(BlackListPath, "r", encoding="utf-8") as blp:
-            BlackList = json.load(blp)
-        if author in BlackList:
-            result = f"{author}已被管理员封禁！"
-            await UploadSentence.finish(result)
-        else:
-            try:
-                Upload()
-                cmd = "custom_plugins/scu_bot/restart.sh"
-                os.system(cmd)
-                result_id = result + f" id:{id}"
-                await UploadSentence.send(result_id)
-            except:
-                await UploadSentence.finish("发生错误！")
-            logger.info(
-                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
-                + result
-            )
+        try:
+            Upload()
+            cmd = "custom_plugins/scu_bot/restart.sh"
+            os.system(cmd)
+            result_id = result + f" id:{id}"
+            await UploadSentence.send(result_id)
+        except:
+            await UploadSentence.finish("发生错误！")
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
+            + result
+        )
 
     elif not event.reply:
         if len(msg) < 2:
@@ -285,6 +341,11 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                     result = f'已成功将{author}说的{sentence}上传至{SentenceName}语录'
                 else:
                     result = f'已成功将{author}说的{sentence}上传至{SentenceName}'
+                with open(BlackListPath, "r", encoding="utf-8") as blp:
+                    BlackList = json.load(blp)
+                if author in BlackList:
+                    result = f"{author}已被管理员封禁！"
+                    await UploadSentence.finish(result)
             else:
                 if SentenceName in ["桑吉","羽月","小晨"]:
                     result = f'已成功将{sentence}上传至{SentenceName}语录'
@@ -293,24 +354,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         else:
             await UploadSentence.finish("该语录不存在！")
 
-        with open(BlackListPath, "r", encoding="utf-8") as blp:
-            BlackList = json.load(blp)
-        if author in BlackList:
-            result = f"{author}已被管理员封禁！"
-            await UploadSentence.finish(result)
-        else:
-            try:
-                Upload()
-                cmd = "custom_plugins/scu_bot/restart.sh"
-                os.system(cmd)
-                result_id = result + f" id:{id}"
-                await UploadSentence.send(result_id)
-            except:
-                await UploadSentence.finish("发生错误！")
-            logger.info(
-                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
-                + result
-            )
+        try:
+            Upload()
+            cmd = "custom_plugins/scu_bot/restart.sh"
+            os.system(cmd)
+            result_id = result + f" id:{id}"
+            await UploadSentence.send(result_id)
+        except:
+            await UploadSentence.finish("发生错误！")
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
+            + result
+        )
 
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 
@@ -384,6 +439,8 @@ def Upload():
     else:
         UploadSentence.finish("该语录不存在！")
 
+    #os.system(f"chmod -R 666 {path}")
+    os.system(f"cp -rf {SentencesFile} {SentencesFile}.bak")
     item_dict = "" # 留空
     f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
     text = f.read() # 读取语言
