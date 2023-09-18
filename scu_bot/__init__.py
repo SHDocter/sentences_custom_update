@@ -31,12 +31,15 @@ usage：
         查询语录（目前仅能查询语录列表）
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         还原语录 语录名称 | 该命令会将语录库还原到上传最后一条语录之前，默认会在还原后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
+        撤回语录 语录名称 撤回次数（默认如果没有撤回次数将撤回1次） | 该命令会将语录库撤回到上一条语录，默认会在撤回后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
         
         语录内容不能有空格
         图片不需要填写作者
         回复作者不是必填的，默认为群名称
         还原语录功能的原理是恢复备份而不是删除元素，所以无论使用几次，都只会还原到上传最后一条语录之前
-        语录库中后缀为.bak的文件为还原的文件，后缀为.bak.1的文件为还原前的文件
+        语录库中后缀为.restore的文件为还原的文件；后缀为.restore.1的文件为还原前的文件；后缀为.revert的文件为撤回前的文件
+        还原和撤回的区别：还原只能还原到上传最后一条语录前，无论运行多少次都是这样；撤回可以指定撤回次数并可以一直撤回到语录库为空，后续版本或许可以支持撤回指定的某一条语录
+        6级权限需要管理员手动授权
         
         例：上传语录 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
@@ -47,7 +50,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.1.0"
+__plugin_version__ = "1.1.1"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -72,9 +75,15 @@ __plugin_configs__ = {
     },
     "SCU_AUTO_RELOAD": {
         "value": True,
-        "help": "撤回语录后是否自动重载语录",
+        "help": "还原或撤回语录后是否自动重载语录",
         "default_value": True,
         "type": bool,
+    },
+    "SCU_REVERT_LEVEL": {
+        "value": 6,
+        "help": "群内撤回语录需要的权限",
+        "default_value": 6,
+        "type": int,
     }
 }
 
@@ -88,6 +97,7 @@ up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
 ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
 RestoreSentence = on_command("还原语录", aliases={"还原语录"}, priority=5, block=True)
+RevokeSentence = on_command("撤回语录", aliases={"撤回语录"}, priority=5, block=True)
 
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
@@ -119,12 +129,12 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             event.group_id,
             Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
         ):
-            await UploadSentence.finish(
+            await RestoreSentence.finish(
                 f"发生错误！code:1012{Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')}",
                 at_sender=False
             )
     if len(msg) < 1:
-        await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
+        await RestoreSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
     path = "/scu/"
     SentencesFile = ""
     if msg[0] in ["桑吉","桑吉语录"]:
@@ -138,22 +148,79 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     elif msg[0] in ["语录","语录合集"]:
         SentencesFile = path + "e.json"
     else:
-        UploadSentence.finish("还原的语录不存在！")
+        await RestoreSentence.finish("还原的语录不存在！")
 
     try:
-        os.system(f"cp -rf {SentencesFile} {SentencesFile}.bak.1")
-        os.system(f"cp -rf {SentencesFile}.bak {SentencesFile}")
+        os.system(f"cp -rf {SentencesFile} {SentencesFile}.restore.1")
+        os.system(f"cp -rf {SentencesFile}.restore {SentencesFile}")
     except:
-        await UploadSentence.finish("还原过程中出现未知错误！")
+        await RestoreSentence.finish("还原过程中出现未知错误！")
 
     if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
         try:
             os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
         except:
-            await CheckSentences.finish("已成功还原语录，但重载发生错误！")
-        await UploadSentence.finish("已成功还原并重载语录！")
+            await RestoreSentence.finish("已成功还原语录，但重载发生错误！")
+        await RestoreSentence.finish("已成功还原并重载语录！")
     else:
-        await UploadSentence.finish("已成功还原语录，请手动重载语录！")
+        await RestoreSentence.finish("已成功还原语录，请手动重载语录！")
+
+@RevokeSentence.handle()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().split()
+    if isinstance(event, GroupMessageEvent):
+        if not await LevelUser.check_level(
+            event.user_id,
+            event.group_id,
+            Config.get_config("scu_bot", "SCU_REVERT_LEVEL"),
+        ):
+            await UploadSentence.finish(
+                f"发生错误！code:1012{Config.get_config('scu_bot', 'SCU_REVERT_LEVEL')}",
+                at_sender=False
+            )
+    if len(msg) < 1:
+        await RevokeSentence.finish("请选择语录！")
+    path = "/scu/"
+    SentencesFile = ""
+    if msg[0] in ["桑吉","桑吉语录"]:
+        SentencesFile = path + "a.json"
+    elif msg[0] in ["羽月","羽月语录"]:
+        SentencesFile = path + "b.json"
+    elif msg[0] in ["楠桐","楠桐语录"]:
+        SentencesFile = path + "c.json"
+    elif msg[0] in ["小晨","小晨语录"]:
+        SentencesFile = path + "d.json"
+    elif msg[0] in ["语录","语录合集"]:
+        SentencesFile = path + "e.json"
+    else:
+        await RevokeSentence.finish("撤回的语录不存在！")
+
+    number = 1
+    if len(msg) > 1:
+        if not re.match(r"([0-9]+)", msg[1]):
+            await RevokeSentence.finish("参数有误！您是否发送的不是数字？")
+        else:
+            number = int(msg[1])
+    # try:
+    os.system(f"cp -rf {SentencesFile} {SentencesFile}.revert")
+    f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
+    sf = f.read() # 读取语言
+    f.close() # 关闭语言文件
+    SentencesList = json.loads(sf) # 转为List，List中为字典
+    for i in range(number):
+        SentencesList.pop()
+    with open(SentencesFile, "w", encoding="utf-8") as f:
+        json.dump(SentencesList, f, indent=4, ensure_ascii=False)
+    # except:
+    #     await RevokeSentence.finish("撤回过程中出现未知错误！")
+    if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
+        try:
+            os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
+        except:
+            await RevokeSentence.finish("已成功撤回语录，但重载发生错误！")
+        await RevokeSentence.finish("已成功撤回并重载语录！")
+    else:
+        await RevokeSentence.finish("已成功撤回语录，请手动重载语录！")
 
 @UploadSentence.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
@@ -440,7 +507,7 @@ def Upload():
         UploadSentence.finish("该语录不存在！")
 
     #os.system(f"chmod -R 666 {path}")
-    os.system(f"cp -rf {SentencesFile} {SentencesFile}.bak")
+    os.system(f"cp -rf {SentencesFile} {SentencesFile}.restore")
     item_dict = "" # 留空
     f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
     text = f.read() # 读取语言

@@ -1,3 +1,10 @@
+<!--
+ * @Author: Nya-WSL
+ * Copyright © 2023 by Nya-WSL All Rights Reserved. 
+ * @Date: 2023-09-18 20:44:32
+ * @LastEditors: error: git config user.name & please set dead value or install git
+ * @LastEditTime: 2023-09-18 21:39:34
+-->
 # Sentences Custom Update
 
 ![version](https://img.shields.io/badge/Version-1.0.14-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
@@ -141,6 +148,26 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 修复新增字典后楠桐语录不会加载新键值对的问题
 
 - 适配新的字典
+
+#### 1.1.1 | 2023.9.18
+
+- 新增撤回语录功能
+
+触发：撤回语录 语录名称 撤回次数（默认如果没有撤回次数将撤回1次）
+
+该命令会将语录库撤回到上一条语录，默认会在撤回后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
+
+将在后续版本适配字典
+
+#### 1.1.0 | 2023.9.17
+
+- 新增还原语录功能
+
+触发：还原语录 语录名称
+
+该命令会将语录库还原到上传最后一条语录之前，默认会在还原后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
+
+将在后续版本适配字典
 
 #### 1.0.16 | 2023.9.17
 
