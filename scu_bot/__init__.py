@@ -1,3 +1,9 @@
+'''
+Author: Nya-WSL
+Copyright © 2023 by Nya-WSL All Rights Reserved. 
+LastEditors: 狐日泽
+LastEditTime: 2023-09-18 22:25:06
+'''
 import os
 import re
 import json
