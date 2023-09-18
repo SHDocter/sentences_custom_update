@@ -1,9 +1,8 @@
 <!--
  * @Author: Nya-WSL
  * Copyright © 2023 by Nya-WSL All Rights Reserved. 
- * @Date: 2023-09-18 20:44:32
- * @LastEditors: error: git config user.name & please set dead value or install git
- * @LastEditTime: 2023-09-18 21:39:34
+ * @LastEditors: 狐日泽
+ * @LastEditTime: 2023-09-18 22:20:32
 -->
 # Sentences Custom Update
 
@@ -150,6 +149,10 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 适配新的字典
 
 #### 1.1.1 | 2023.9.18
+
+- 修改还原语录备份文件的后缀
+
+- 修复还原语录使用了其他触发器的问题
 
 - 新增撤回语录功能
 
