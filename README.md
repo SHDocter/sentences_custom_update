@@ -1,12 +1,14 @@
 <!--
  * @Author: Nya-WSL
  * Copyright © 2023 by Nya-WSL All Rights Reserved. 
+ * @Date: 2023-07-06 03:04:33
  * @LastEditors: 狐日泽
- * @LastEditTime: 2023-09-18 22:20:32
+ * @LastEditTime: 2023-09-19 12:42:40
 -->
+
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.0.14-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.1.1-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
