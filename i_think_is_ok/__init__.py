@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-09-25 23:41:49
+LastEditTime: 2023-09-26 13:19:48
 '''
 from nonebot import on_keyword
 from services.log import logger
@@ -38,11 +38,14 @@ send_img = on_keyword({"yhm", "樱花妹", "我觉得行"}, priority=5, block=Tr
 
 ImagePath = IMAGE_PATH / "scu/easter_egg"
 ResourcesPath = Path() / "custom_plugins" / "i_think_is_ok"
+ImgPath1 = ResourcesPath / "1.jpg"
+ImgPath2 = ResourcesPath / "yhm.jpg"
 ListPath = ResourcesPath / "group_list.json"
 
 if not os.path.exists(ImagePath):
     os.mkdir(ImagePath)
-    # os.system(f"mv {ResourcesPath}")
+    os.system(f"mv {ImgPath1} {ImagePath}")
+    os.system(f"mv {ImgPath2} {ImagePath}")
 
 if not ListPath.exists():
     with open(ListPath, "w", encoding="utf-8") as gl:
@@ -50,11 +53,10 @@ if not ListPath.exists():
 
 @send_img.handle()
 async def _(event: MessageEvent):
-    print(event.message)
     with open(ListPath, "r", encoding="utf-8") as gl:
         GroupList = json.load(gl)
     if f"{event.group_id}" in GroupList:
-        if f"{event.user_id}" in ["1040723300", "1095530930"]:
+        if f"{event.user_id}" in ["1040723300"]:
             if re.search("yhm", str(event.message)) or re.search("樱花妹", str(event.message)):
                 result = image("scu/easter_egg/" + "yhm.jpg")
                 await send_img.send(result)
