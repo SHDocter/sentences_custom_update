@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-09-26 13:19:48
+LastEditTime: 2023-09-26 21:25:24
 '''
 from nonebot import on_keyword
 from services.log import logger
@@ -16,6 +16,7 @@ import gc
 import re
 import json
 import random
+import fnmatch
 
 __zx_plugin_name__ = "我觉得行"
 __plugin_cmd__ = ["我觉得行"]
@@ -44,8 +45,8 @@ ListPath = ResourcesPath / "group_list.json"
 
 if not os.path.exists(ImagePath):
     os.mkdir(ImagePath)
-    os.system(f"mv {ImgPath1} {ImagePath}")
-    os.system(f"mv {ImgPath2} {ImagePath}")
+    os.system(f"cp -rf {ImgPath1} {ImagePath}")
+    os.system(f"cp -rf {ImgPath2} {ImagePath}")
 
 if not ListPath.exists():
     with open(ListPath, "w", encoding="utf-8") as gl:
@@ -58,7 +59,9 @@ async def _(event: MessageEvent):
     if f"{event.group_id}" in GroupList:
         if f"{event.user_id}" in ["1040723300"]:
             if re.search("yhm", str(event.message)) or re.search("樱花妹", str(event.message)):
-                result = image("scu/easter_egg/" + "yhm.jpg")
+                ImgList = fnmatch.filter(os.listdir(ImagePath), "asahi*.*")
+                RandomImg = random.choice(ImgList)
+                result = image(ImagePath / RandomImg)
                 await send_img.send(result)
                 flush = gc.collect()
                 print(f"已成功清理内存：{flush}")
