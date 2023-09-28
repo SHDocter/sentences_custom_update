@@ -3,13 +3,14 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-08-30 00:47:09
 LastEditors: 狐日泽
-LastEditTime: 2023-09-19 12:42:05
+LastEditTime: 2023-09-28 22:01:10
 '''
 
 import os
 import re
 import json
 import uuid
+import fnmatch
 import datetime
 from nonebot import on_command
 from services.log import logger
@@ -45,7 +46,7 @@ usage：
         图片不需要填写作者
         回复作者不是必填的，默认为群名称
         还原语录功能的原理是恢复备份而不是删除元素，所以无论使用几次，都只会还原到上传最后一条语录之前
-        语录库中后缀为.restore的文件为还原的文件；后缀为.restore.1的文件为还原前的文件；后缀为.revert的文件为撤回前的文件
+        语录库中后缀为.restore的文件为还原的文件；后缀为.restore.1的文件为还原前的文件；后缀为.revert的文件为撤回前的文件，撤回的备份最大数量可在bot的config中配置
         还原和撤回的区别：还原只能还原到上传最后一条语录前，无论运行多少次都是这样；撤回可以指定撤回次数并可以一直撤回到语录库为空，后续版本或许可以支持撤回指定的某一条语录
         6级权限需要管理员手动授权
         
@@ -58,7 +59,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.1.1"
+__plugin_version__ = "1.1.2"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -91,6 +92,12 @@ __plugin_configs__ = {
         "value": 6,
         "help": "群内撤回语录需要的权限",
         "default_value": 6,
+        "type": int,
+    },
+    "SCU_REVERT_COUNT": {
+        "value": 10,
+        "help": "群内撤回语录备份的最大数量",
+        "default_value": 10,
         "type": int,
     }
 }
@@ -210,7 +217,11 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         else:
             number = int(msg[1])
     # try:
-    os.system(f"cp -rf {SentencesFile} {SentencesFile}.revert")
+    FileList = fnmatch.filter(os.listdir(path), f"{SentencesFile.split('/')[-1]}.revert.*")
+    BakNumber = len(FileList)
+    if BakNumber >= int(Config.get_config('scu_bot', 'SCU_REVERT_COUNT')):
+        os.remove(path + FileList[0])
+    os.system(f"cp -rf {SentencesFile} {SentencesFile}.revert.{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
     f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
     sf = f.read() # 读取语言
     f.close() # 关闭语言文件
