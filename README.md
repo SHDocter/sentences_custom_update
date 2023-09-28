@@ -3,12 +3,12 @@
  * Copyright © 2023 by Nya-WSL All Rights Reserved. 
  * @Date: 2023-07-06 03:04:33
  * @LastEditors: 狐日泽
- * @LastEditTime: 2023-09-28 22:02:52
+ * @LastEditTime: 2023-09-28 22:09:07
 -->
 
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.1.1-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.1.2-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -153,6 +153,8 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 #### 1.1.2 | 2023.9.28
 
 - 撤回语录备份功能扩展，新增可配置的最大备份数量，通过bot的config配置，默认10
+
+最大备份数量指的是当备份的文件数超过配置的值时，将会删除最旧的文件并备份最新的，备份文件的数量将保持为配置的值
 
 #### 1.1.1 | 2023.9.18
 
