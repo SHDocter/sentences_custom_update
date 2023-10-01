@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-08-30 00:47:09
 LastEditors: 狐日泽
-LastEditTime: 2023-09-28 22:01:10
+LastEditTime: 2023-10-01 22:12:17
 '''
 
 import os
@@ -41,6 +41,8 @@ usage：
         重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错）
         还原语录 语录名称 | 该命令会将语录库还原到上传最后一条语录之前，默认会在还原后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
         撤回语录 语录名称 撤回次数（默认如果没有撤回次数将撤回1次） | 该命令会将语录库撤回到上一条语录，默认会在撤回后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
+        提取语录 语录名称 语录作者（如果是不需要作者的语录该参数可以省略）| 支持字典 | 提取不需要作者的语录时，将会过滤掉该语录中其余的键值对仅保留语录内容，提取需要作者的语录时，仅保留该作者的语录内容
+        注：提取后的文件格式为json，内容为格式化后的列表
         
         语录内容不能有空格
         图片不需要填写作者
@@ -59,7 +61,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.1.2"
+__plugin_version__ = "1.1.3"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -113,6 +115,7 @@ CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5
 ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
 RestoreSentence = on_command("还原语录", aliases={"还原语录"}, priority=5, block=True)
 RevokeSentence = on_command("撤回语录", aliases={"撤回语录"}, priority=5, block=True)
+ExtractSentnces = on_command("提取语录", aliases={"下载语录"}, priority=5, block=True)
 
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
@@ -120,6 +123,82 @@ if not os.path.exists(UserDictPath):
 if not os.path.exists(BlackListPath):
     with open(BlackListPath, "w", encoding="utf-8") as blp:
         blp.write(r"[]")
+
+@ExtractSentnces.handle()
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().split()
+    if len(msg) < 1:
+        await ExtractSentnces.finish("请选择语录！")
+    path = "/scu/"
+    SentencesFile = ""
+    if msg[0] in ["桑吉","桑吉语录"]:
+        SentencesFile = path + "a.json"
+    elif msg[0] in ["羽月","羽月语录"]:
+        SentencesFile = path + "b.json"
+    elif msg[0] in ["楠桐","楠桐语录"]:
+        SentencesFile = path + "c.json"
+        if len(msg) < 2:
+            await ExtractSentnces.finish("请选择作者！")
+    elif msg[0] in ["小晨","小晨语录"]:
+        SentencesFile = path + "d.json"
+    elif msg[0] in ["语录","语录合集"]:
+        SentencesFile = path + "e.json"
+        if len(msg) < 2:
+            await ExtractSentnces.finish("请选择作者！")
+    else:
+        await RevokeSentence.finish("提取的语录不存在！")
+    f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
+    sf = f.read() # 读取语言
+    f.close() # 关闭语言文件
+    SentencesList = json.loads(sf) # 转为List，List中为字典
+    ExtractList = []
+    with open(UserDictPath, "r", encoding="utf-8") as ud:
+        UserDict = json.load(ud)
+    author = ""
+    time = datetime.datetime.now().strftime('%Y.%m.%d %H:%M')
+    if len(msg) > 1:
+        author = str(msg[1])
+        for key,value in UserDict.items():
+            if key == author:
+                author = value
+        FilePath = ScuDataPath / "cloud" / f"extract_{author}_{time}.json"
+        for AuthorDict in SentencesList:
+            if AuthorDict["from_who"] == author:
+                ExtractList.append(AuthorDict["hitokoto"])
+        if ExtractList == []:
+            await ExtractSentnces.finish("似乎没有这个人的语录")
+        with open(FilePath, "w", encoding="utf-8") as f:
+            json.dump(ExtractList, f, ensure_ascii=False, indent=0)
+        if os.path.exists(FilePath):
+            result = f"""提取{msg[0]}中的{author}完成！
+
+下载地址：
+https://cloud.nya-wsl.cn/pd/bot/{FilePath}
+
+Powered by Nya-WSL-Cloud
+"""
+            await ExtractSentnces.send(result)
+        else:
+            await ExtractSentnces.finish("提取语录发生错误！")
+    else:
+        FilePath = ScuDataPath / "cloud" / f"extract_{msg[0]}_{time}.json"
+        for Dict in SentencesList:
+            ExtractList.append(Dict["hitokoto"])
+        if ExtractList == []:
+            await ExtractSentnces.finish("似乎没有这个人的语录")
+        with open(FilePath, "w", encoding="utf-8") as f:
+            json.dump(ExtractList, f, ensure_ascii=False, indent=0)
+        if os.path.exists(FilePath):
+            result = f"""提取{msg[0]}完成！
+
+下载地址：
+https://cloud.nya-wsl.cn/pd/bot/{FilePath}
+
+Powered by Nya-WSL-Cloud
+"""
+            await ExtractSentnces.send(result)
+        else:
+            await ExtractSentnces.finish("提取语录发生错误！")
 
 @ReloadSentences.handle()
 async def _():
