@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-08-30 00:47:09
 LastEditors: 狐日泽
-LastEditTime: 2023-10-01 22:12:17
+LastEditTime: 2023-10-02 23:04:20
 '''
 
 import os
@@ -173,7 +173,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             result = f"""提取{msg[0]}中的{author}完成！
 
 下载地址：
-https://cloud.nya-wsl.cn/pd/bot/{FilePath}
+https://cloud.nya-wsl.cn/pd/bot/extract_{author}_{time}.json
 
 Powered by Nya-WSL-Cloud
 """
@@ -192,7 +192,7 @@ Powered by Nya-WSL-Cloud
             result = f"""提取{msg[0]}完成！
 
 下载地址：
-https://cloud.nya-wsl.cn/pd/bot/{FilePath}
+https://cloud.nya-wsl.cn/pd/bot/extract_{author}_{time}.json
 
 Powered by Nya-WSL-Cloud
 """
