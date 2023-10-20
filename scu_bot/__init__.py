@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-08-30 00:47:09
 LastEditors: 狐日泽
-LastEditTime: 2023-10-20 23:28:23
+LastEditTime: 2023-10-21 00:52:39
 '''
 
 import os
@@ -148,7 +148,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     with open(UserDictPath, "r", encoding="utf-8") as ud:
         UserDict = json.load(ud)
     author = ""
-    time = datetime.datetime.now().strftime('%Y.%m.%d.%H:%M')
+    time = datetime.datetime.now().strftime('%Y.%m.%d.%H%M')
     if len(msg) > 1:
         author = str(msg[1])
         for key,value in UserDict.items():
