@@ -3,13 +3,16 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-09-27 14:55:59
+LastEditTime: 2023-10-28 00:15:39
 '''
-from nonebot import on_keyword
+from nonebot import on_keyword, on_message
 from services.log import logger
 from nonebot.adapters.onebot.v11 import MessageEvent
 from utils.message_builder import image
 from configs.path_config import IMAGE_PATH
+from utils.utils import get_message_text
+from nonebot.adapters.onebot.v11.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from pathlib import Path
 import os
 import gc
@@ -37,9 +40,38 @@ usage：
 install：
     只有group_list.json中存在的群才会触发，该文件初次运行将会自动生成
     除了我觉得行功能以外，其他用户限定功能发送人qq号或者id需要存在于user_list.json中相关的键的值（值可以是列表指定多个用户，也可以是字符串指定单个用户）才能触发
+    打断复读功能仅受group_list限制不受用户限制
 """.strip()
 
+class Fudu:
+    def __init__(self):
+        self.data = {}
+
+    def append(self, key, content):
+        self._create(key)
+        self.data[key]["data"].append(content)
+
+    def clear(self, key):
+        self._create(key)
+        self.data[key]["data"] = []
+        self.data[key]["is_repeater"] = False
+
+    def size(self, key) -> int:
+        self._create(key)
+        return len(self.data[key]["data"])
+
+    def check(self, key, content) -> bool:
+        self._create(key)
+        return self.data[key]["data"][0] == content
+
+    def _create(self, key):
+        if self.data.get(key) is None:
+            self.data[key] = {"is_repeater": False, "data": []}
+
+_fudu_list = Fudu()
+
 send_img = on_keyword({"yhm", "樱花妹", "我觉得行"}, priority=5, block=True)
+fudu = on_message(permission=GROUP, priority=999)
 
 ImagePath = IMAGE_PATH / "scu/easter_egg"
 ResourcesPath = Path() / "custom_plugins" / "i_think_is_ok"
@@ -91,3 +123,24 @@ async def _(event: MessageEvent):
             await send_img.send(result)
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
+
+@fudu.handle()
+async def _(event: GroupMessageEvent):
+    with open(GroupListPath, "r", encoding="utf-8") as gl:
+        GroupList = json.load(gl)
+    if f"{event.group_id}" in GroupList:
+        if event.is_tome():
+            return
+        msg = get_message_text(event.json())
+        if not msg:
+            return
+        add_msg = msg + "|-|"
+        if _fudu_list.size(event.group_id) == 0:
+            _fudu_list.append(event.group_id, add_msg)
+        elif _fudu_list.check(event.group_id, add_msg):
+            _fudu_list.append(event.group_id, add_msg)
+        else:
+            _fudu_list.clear(event.group_id)
+            _fudu_list.append(event.group_id, add_msg)
+        if _fudu_list.size(event.group_id) >= 2:
+            await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
