@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-10-28 00:15:39
+LastEditTime: 2023-10-28 13:04:28
 '''
 from nonebot import on_keyword, on_message
 from services.log import logger
@@ -143,4 +143,5 @@ async def _(event: GroupMessageEvent):
             _fudu_list.clear(event.group_id)
             _fudu_list.append(event.group_id, add_msg)
         if _fudu_list.size(event.group_id) >= 2:
+            _fudu_list.clear(event.group_id)
             await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
