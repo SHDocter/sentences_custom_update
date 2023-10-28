@@ -3,14 +3,17 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-10-28 15:31:05
+LastEditTime: 2023-10-29 02:27:42
 '''
 from nonebot import on_keyword, on_message
 from services.log import logger
 from nonebot.adapters.onebot.v11 import MessageEvent
 from utils.message_builder import image
+from utils.http_utils import AsyncHttpx
+from configs.path_config import TEMP_PATH
+from utils.image_utils import get_img_hash
 from configs.path_config import IMAGE_PATH
-from utils.utils import get_message_text
+from utils.utils import get_message_text, get_message_img
 from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from pathlib import Path
@@ -64,6 +67,18 @@ class Fudu:
         self._create(key)
         return self.data[key]["data"][0] == content
 
+    def get(self, key):
+        self._create(key)
+        return self.data[key]["data"][0]
+
+    def is_repeater(self, key):
+        self._create(key)
+        return self.data[key]["is_repeater"]
+
+    def set_repeater(self, key):
+        self._create(key)
+        self.data[key]["is_repeater"] = True
+
     def _create(self, key):
         if self.data.get(key) is None:
             self.data[key] = {"is_repeater": False, "data": []}
@@ -81,6 +96,8 @@ UserListPath = ResourcesPath / "user_list.json"
 
 if not os.path.exists(ImagePath):
     os.mkdir(ImagePath)
+    os.system(f"cp -rf {ImgPath}/* {ImagePath}")
+else:
     os.system(f"cp -rf {ImgPath}/* {ImagePath}")
 
 if not GroupListPath.exists():
@@ -101,7 +118,6 @@ async def _(event: MessageEvent):
         GroupList = json.load(gl)
     with open(UserListPath, "r", encoding="utf-8") as ul:
         UserList = json.load(ul)
-    print(UserList)
     if f"{event.group_id}" in GroupList:
         # 用户限定功能1
         if f"{event.user_id}" in UserList["yhm"]:
@@ -130,10 +146,15 @@ async def _(event: GroupMessageEvent):
     if f"{event.group_id}" in GroupList:
         if event.is_tome():
             return
+        img = get_message_img(event.json())
         msg = get_message_text(event.json())
-        if not msg:
+        if not img and not msg:
             return
-        add_msg = msg + "|-|"
+        if img:
+            img_hash = await get_fudu_img_hash(img[0], event.group_id)
+        else:
+            img_hash = ""
+        add_msg = msg + "|-|" + img_hash
         if _fudu_list.size(event.group_id) == 0:
             _fudu_list.append(event.group_id, add_msg)
         elif _fudu_list.check(event.group_id, add_msg):
@@ -143,7 +164,34 @@ async def _(event: GroupMessageEvent):
             _fudu_list.append(event.group_id, add_msg)
         if _fudu_list.size(event.group_id) >= 2:
             _fudu_list.clear(event.group_id)
-            if random.random() < 0.7:
-                await fudu.finish(msg)
+            if random.random() < 0.7 and not _fudu_list.is_repeater(event.group_id):
+                _fudu_list.set_repeater(event.group_id)
+                if img and msg:
+                    rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+                elif img:
+                    rst = image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+                elif msg:
+                    rst = msg
+                else:
+                    rst = ""
+                if rst:
+                    await fudu.finish(rst)
+                    flush = gc.collect()
+                    print(f"已成功清理内存：{flush}")
             else:
                 await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
+                flush = gc.collect()
+                print(f"已成功清理内存：{flush}")
+
+async def get_fudu_img_hash(url, group_id):
+    try:
+        if await AsyncHttpx.download_file(
+            url, TEMP_PATH / f"fudu_{group_id}.jpg"
+        ):
+            img_hash = get_img_hash(TEMP_PATH / f"fudu_{group_id}.jpg")
+            return str(img_hash)
+        else:
+            logger.warning(f"下载图片失败...")
+    except Exception as e:
+        logger.warning(f"图片Hash出错 {type(e)}：{e}")
+    return ""
