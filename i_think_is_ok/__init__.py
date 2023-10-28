@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-10-28 13:04:28
+LastEditTime: 2023-10-28 13:35:10
 '''
 from nonebot import on_keyword, on_message
 from services.log import logger
@@ -89,12 +89,10 @@ if not GroupListPath.exists():
 
 if not UserListPath.exists():
     with open(UserListPath, "w", encoding="utf-8") as ul:
-        UserList = [
-    {
+        UserList = {
         "yhm": ["0000000000"],
         "example": "example"
-    }
-]
+}
         json.dump(UserList, ul, ensure_ascii=False, indent=4)
 
 @send_img.handle()
@@ -103,6 +101,7 @@ async def _(event: MessageEvent):
         GroupList = json.load(gl)
     with open(UserListPath, "r", encoding="utf-8") as ul:
         UserList = json.load(ul)
+    print(UserList)
     if f"{event.group_id}" in GroupList:
         # 用户限定功能1
         if f"{event.user_id}" in UserList["yhm"]:
