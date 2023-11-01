@@ -1,3 +1,10 @@
+'''
+Author: Nya-WSL
+Copyright © 2023 by Nya-WSL All Rights Reserved. 
+Date: 2023-11-01 12:24:49
+LastEditors: 狐日泽
+LastEditTime: 2023-11-01 20:04:56
+'''
 from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
@@ -8,6 +15,7 @@ from utils.http_utils import AsyncHttpx
 from configs.path_config import DATA_PATH, IMAGE_PATH
 from models.level_user import LevelUser
 from configs.config import Config
+from . import db
 import os
 import gc
 import re
@@ -92,6 +100,10 @@ MainConfigPath = ScuDataPath / "config.yml"
 CardCountPath = ScuDataPath / "card_count.json"
 CardDictPath = ScuDataPath / "card_dict.json"
 UserDictPath = ScuDataPath / "user_dict.json"
+DatabasePath = ScuDataPath / "gay_quotations.db"
+
+if not os.path.exists(DatabasePath):
+    db.create()
 
 if not os.path.exists(UserDictPath):
     with open(UserDictPath, "w", encoding="utf-8") as ud:
@@ -287,22 +299,33 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     if len(msg) < 1:
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
+        DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
         if data["from_who"] in n:
             card = " | N卡"
             CountList["n"] += 1
+            DatabaseDict["N"] = DatabaseDict["N"] + 1
         if data["from_who"] in r:
             card = " | R卡"
             CountList["r"] += 1
+            DatabaseDict["R"] = DatabaseDict["R"] + 1
         if data["from_who"] in sr:
             card = " | SR卡"
             CountList["sr"] += 1
+            DatabaseDict["SR"] = DatabaseDict["SR"] + 1
         if data["from_who"] in ssr:
             card = " | SSR卡"
             CountList["ssr"] += 1
+            DatabaseDict["SSR"] = DatabaseDict["SSR"] + 1
         if data["from_who"] not in CardPool:
             card = ""
         with open(CardCountPath,'w',encoding='utf-8') as f:
             json.dump(CountList, f,ensure_ascii=False)
+        print(event.user_id)
+        if db.check(f"{str(event.user_id)}") != []:
+            db.uptate(event.user_id, CountDict=DatabaseDict)
+        else:
+            db.write(event.user_id, event.group_id)
+            db.uptate(event.user_id, CountDict=DatabaseDict)
         result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
@@ -545,6 +568,7 @@ SSR：{ssr} | {ssr_all}条
 
             msg_list = []
             card_n, card_r, card_sr, card_ssr = 0, 0, 0, 0
+            DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
 
             for i in range(int(DrawCount)):
                 text = (await AsyncHttpx.get(url, timeout=10)).json()
@@ -553,24 +577,28 @@ SSR：{ssr} | {ssr_all}条
                     card = " | N卡"
                     card_n += 1
                     CountList["n"] += 1
+                    DatabaseDict["N"] = DatabaseDict["N"] + 1
                 else:
                     card_n
                 if text["from_who"] in r:
                     card = " | R卡"
                     card_r += 1
                     CountList["r"] += 1
+                    DatabaseDict["R"] = DatabaseDict["R"] + 1
                 else:
                     card_r
                 if text["from_who"] in sr:
                     card = " | SR卡"
                     card_sr += 1
                     CountList["sr"] += 1
+                    DatabaseDict["SR"] = DatabaseDict["SR"] + 1
                 else:
                     card_sr
                 if text["from_who"] in ssr:
                     card = " | SSR卡"
                     card_ssr += 1
                     CountList["ssr"] += 1
+                    DatabaseDict["SSR"] = DatabaseDict["SSR"] + 1
                 else:
                     card_ssr
                 if text["from_who"] not in CardPool:
@@ -583,6 +611,11 @@ SSR：{ssr} | {ssr_all}条
 
             with open(CardCountPath,'w',encoding='utf-8') as f:
                 json.dump(CountList, f,ensure_ascii=False)
+            if db.check(f"{str(event.user_id)}") != []:
+                db.uptate(event.user_id, CountDict=DatabaseDict)
+            else:
+                db.write(event.user_id, event.group_id)
+                db.uptate(event.user_id, CountDict=DatabaseDict)
             result = {
             "type": "node",
             "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f"汇总：N：{card_n} R：{card_r} SR：{card_sr} SSR：{card_ssr}"},

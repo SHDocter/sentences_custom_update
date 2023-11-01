@@ -165,3 +165,4 @@ test/
 logs/
 *.log
 **/*.log
+.DS_Store
