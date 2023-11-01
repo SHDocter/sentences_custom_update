@@ -3,13 +3,19 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:30:35
 LastEditors: 狐日泽
-LastEditTime: 2023-11-01 19:45:49
+LastEditTime: 2023-11-01 21:06:29
 '''
 import sqlite3
 from configs.path_config import DATA_PATH
 
 ScuDataPath = DATA_PATH / "scu"
 DatabasePath = ScuDataPath / "gay_quotations.db"
+
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
 
 def create():
     conn = sqlite3.connect(DatabasePath)
@@ -43,3 +49,12 @@ def uptate(user, CountDict):
         c.execute(f"UPDATE hitokoto SET {key}={key} + ? WHERE user = ?", (value, user))
         conn.commit()
     conn.close()
+
+def count(user):
+    conn = sqlite3.connect(DatabasePath)
+    conn.row_factory = dict_factory
+    c = conn.cursor()
+    c.execute(f"SELECT * FROM hitokoto WHERE user = {user}")
+    DatabaseCount = c.fetchall()
+    conn.close()
+    return DatabaseCount

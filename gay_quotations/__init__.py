@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-11-01 20:04:56
+LastEditTime: 2023-11-01 21:40:02
 '''
 from nonebot import on_command
 from services.log import logger
@@ -321,7 +321,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         with open(CardCountPath,'w',encoding='utf-8') as f:
             json.dump(CountList, f,ensure_ascii=False)
         print(event.user_id)
-        if db.check(f"{str(event.user_id)}") != []:
+        if db.check(str(event.user_id)) != []:
             db.uptate(event.user_id, CountDict=DatabaseDict)
         else:
             db.write(event.user_id, event.group_id)
@@ -611,7 +611,7 @@ SSR：{ssr} | {ssr_all}条
 
             with open(CardCountPath,'w',encoding='utf-8') as f:
                 json.dump(CountList, f,ensure_ascii=False)
-            if db.check(f"{str(event.user_id)}") != []:
+            if db.check(str(event.user_id)) != []:
                 db.uptate(event.user_id, CountDict=DatabaseDict)
             else:
                 db.write(event.user_id, event.group_id)
@@ -627,6 +627,18 @@ SSR：{ssr} | {ssr_all}条
         # elif UpPoolRegex:
         #     while True:
         #         break
+        elif SentenceCheck in ["统计"]:
+            result = db.count(str(event.user_id))
+            if result == []:
+                await quotations.finish("你在梦里抽的卡？")
+            else:
+                result = result[0]
+                n = result["N"]
+                r = result["R"]
+                sr = result["SR"]
+                ssr = result["SSR"]
+                await quotations.finish(f"""从2023年11月1日21点40分开始，您一共抽取了{n + r + sr + ssr}条语录
+其中N卡{n}张，R卡{r}张，SR卡{sr}张，SSR卡{ssr}张""")
         else:
             await quotations.finish("参数有误,code:10404，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
