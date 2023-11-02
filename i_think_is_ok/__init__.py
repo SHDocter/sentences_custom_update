@@ -3,9 +3,9 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-10-29 02:27:42
+LastEditTime: 2023-11-02 13:08:58
 '''
-from nonebot import on_keyword, on_message
+from nonebot import on_keyword, on_message, on_notice
 from services.log import logger
 from nonebot.adapters.onebot.v11 import MessageEvent
 from utils.message_builder import image
@@ -15,7 +15,7 @@ from utils.image_utils import get_img_hash
 from configs.path_config import IMAGE_PATH
 from utils.utils import get_message_text, get_message_img
 from nonebot.adapters.onebot.v11.permission import GROUP
-from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Bot, Event, GroupRecallNoticeEvent, FriendRecallNoticeEvent
 from pathlib import Path
 import os
 import gc
@@ -195,3 +195,20 @@ async def get_fudu_img_hash(url, group_id):
     except Exception as e:
         logger.warning(f"图片Hash出错 {type(e)}：{e}")
     return ""
+
+async def handle_rule(bot: Bot, event: Event) -> bool:
+    if isinstance(event, GroupRecallNoticeEvent) or isinstance(event, FriendRecallNoticeEvent):
+        return True
+    return False
+
+message_back = on_notice(rule=handle_rule, priority=50)
+
+@message_back.handle()
+async def message_back_handle(bot: Bot, Gevent: GroupRecallNoticeEvent):
+    with open(GroupListPath, "r", encoding="utf-8") as gl:
+        GroupList = json.load(gl)
+    if f"{Gevent.group_id}" in GroupList:
+        if Gevent.user_id == Gevent.operator_id:
+            await bot.call_api('get_msg', **{"message_id": Gevent.message_id}) # 获取撤回的消息id
+            result = image("scu/easter_egg/" + "2.jpg")
+            await message_back.finish(result)
