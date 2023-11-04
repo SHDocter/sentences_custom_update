@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-11-04 13:20:04
+LastEditTime: 2023-11-04 17:56:26
 '''
 from nonebot import on_command
 from services.log import logger
@@ -166,8 +166,10 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     sr_all = 0
     ssr_all = 0
     for key,value in Dict.items():
-        ValuePercent = f"{int(value / len(content) * 10000) / 100}"
-        NewDict[key] = f"{ValuePercent}%"
+        #ValuePercent = f"{int(value / len(content) * 10000) / 100}"
+        #NewDict[key] = f"{ValuePercent}%"
+        ValuePercent = float(int(value / len(content) * 10000) / 100)
+        NewDict[key] = ValuePercent
         if len(msg) >= 2:
             with open(MainConfigPath, "r", encoding="utf-8") as mcp:
                 conf = yaml.load(mcp, Loader=yaml.FullLoader)
@@ -455,10 +457,10 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                     with open(MainConfigPath, "w") as f:
                         yaml.dump(config, f)
                     await quotations.finish(f"已成功{CmdMsg}!")
-            Dict = sorted(Dict.items(), key=lambda x:x[1])
-            print(Dict)
+            Dict = sorted(Dict.items(), key=lambda x:x[1], reverse=True)
+            NewDict = sorted(NewDict.items(), key=lambda x:x[1], reverse=True)
             List = "\n" + str(Dict).replace("[('", "").replace("), ('", " | ").replace("', ", "：").replace(")]", "")
-            percent = "\n" + str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            percent = "\n" + str(NewDict).replace("[('", "").replace("), ('", "% | ").replace("', ", "：").replace(")]", "%")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             sr = str(sr).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
