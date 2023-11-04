@@ -3,7 +3,7 @@
  * Copyright © 2023 by Nya-WSL All Rights Reserved. 
  * @Date: 2023-07-06 03:04:33
  * @LastEditors: 狐日泽
- * @LastEditTime: 2023-11-01 21:58:20
+ * @LastEditTime: 2023-11-04 13:20:51
 -->
 
 # Sentences Custom Update
@@ -162,6 +162,8 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 全局抽卡数：指该用户在所有群的抽卡记录
 
 统计时间从2023-11-01 21:40:02开始
+
+- 楠桐语录查询结果将会按照语录数排序
 
 #### 1.1.3 | 2023.10.1
 

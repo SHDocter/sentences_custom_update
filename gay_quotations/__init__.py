@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-11-01 21:40:02
+LastEditTime: 2023-11-04 13:20:04
 '''
 from nonebot import on_command
 from services.log import logger
@@ -455,7 +455,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                     with open(MainConfigPath, "w") as f:
                         yaml.dump(config, f)
                     await quotations.finish(f"已成功{CmdMsg}!")
-            List = "\n" + str(Dict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+            Dict = sorted(Dict.items(), key=lambda x:x[1])
+            print(Dict)
+            List = "\n" + str(Dict).replace("[('", "").replace("), ('", " | ").replace("', ", "：").replace(")]", "")
             percent = "\n" + str(NewDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
             n = str(n).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
             r = str(r).replace(", ", " ").replace("[", "").replace("]", "").replace("'", "")
