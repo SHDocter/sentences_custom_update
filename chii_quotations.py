@@ -35,8 +35,8 @@ __plugin_type__ = ("语录", 1)
 quotations = on_command("羽月语录", aliases={"羽月语录"}, priority=5, block=True)
 quotations_ten = on_command("羽月语录十连", aliases={"羽月语录十连"}, priority=5, block=True)
 
-url = "http://sentence.osttsstudio.ltd:8000/?c=b"
-CheckUrl = "http://sentence.osttsstudio.ltd:9000/b.json"
+url = "http://sentence.nya-wsl.cn:8000/?c=b"
+CheckUrl = "http://sentence.nya-wsl.cn:9000/b.json"
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):

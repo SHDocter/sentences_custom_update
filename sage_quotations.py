@@ -1,3 +1,10 @@
+'''
+Author: Nya-WSL
+Copyright © 2023 by Nya-WSL All Rights Reserved. 
+Date: 2023-10-01 17:18:58
+LastEditors: 狐日泽
+LastEditTime: 2023-11-14 23:44:40
+'''
 from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
@@ -35,8 +42,8 @@ __plugin_type__ = ("语录", 1)
 quotations = on_command("桑吉语录", aliases={"桑吉语录", "桑急语录", "羊驼语录", "桑姨语录"}, priority=5, block=True)
 quotations_ten = on_command("桑吉语录十连", aliases={"桑吉语录十连", "桑急语录十连", "羊驼语录十连"}, priority=5, block=True)
 
-url = "http://sentence.osttsstudio.ltd:8000/?c=a"
-CheckUrl = "http://sentence.osttsstudio.ltd:9000/a.json"
+url = "http://sentence.nya-wsl.cn:8000/?c=a"
+CheckUrl = "http://sentence.nya-wsl.cn:9000/a.json"
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):

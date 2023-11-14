@@ -38,8 +38,8 @@ __plugin_type__ = ("语录", 1)
 quotations = on_command("语录合集", aliases={"语录合集"}, priority=5, block=True)
 quotations_ten = on_command("语录合集十连", aliases={"语录合集十连"}, priority=5, block=True)
 
-url = "http://sentence.osttsstudio.ltd:8000/?c=e"
-CheckUrl = "http://sentence.osttsstudio.ltd:9000/e.json"
+url = "http://sentence.nya-wsl.cn:8000/?c=e"
+CheckUrl = "http://sentence.nya-wsl.cn:9000/e.json"
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
@@ -129,7 +129,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = Comman
                 )
                 await quotations.finish(f"发生错误！")
         elif SentenceCheck in ["随机"]:
-            data = (await AsyncHttpx.get("http://sentence.osttsstudio.ltd:8000", timeout=5)).json()
+            data = (await AsyncHttpx.get("http://sentence.nya-wsl.cn:8000", timeout=5)).json()
             result = f'{data["hitokoto"]} | {data["from_who"]} {data["type"]}:{data["id"]}'
             await quotations.send(result)
             logger.info(
