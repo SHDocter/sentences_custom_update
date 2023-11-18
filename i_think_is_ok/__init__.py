@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-11-02 13:08:58
+LastEditTime: 2023-11-18 22:09:12
 '''
 from nonebot import on_keyword, on_message, on_notice
 from services.log import logger
@@ -85,7 +85,7 @@ class Fudu:
 
 _fudu_list = Fudu()
 
-send_img = on_keyword({"yhm", "樱花妹", "我觉得行"}, priority=5, block=True)
+send_img = on_keyword({"yhm", "樱花妹", "我觉得行", "傲娇"}, priority=5, block=True)
 fudu = on_message(permission=GROUP, priority=999)
 
 ImagePath = IMAGE_PATH / "scu/easter_egg"
@@ -135,6 +135,15 @@ async def _(event: MessageEvent):
                 logger.warning(f"彩蛋图库为空，调用取消！")
                 await send_img.finish("哥们没活了呜呜呜")
             result = image("scu/easter_egg/" + "1.jpg")
+            await send_img.send(result)
+            flush = gc.collect()
+            print(f"已成功清理内存：{flush}")
+        if re.search("傲娇", str(event.message)):
+            length = len(os.listdir(ImagePath))
+            if length == 0:
+                logger.warning(f"彩蛋图库为空，调用取消！")
+                await send_img.finish("哥们没活了呜呜呜")
+            result = image("scu/easter_egg/" + "1.gif")
             await send_img.send(result)
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
