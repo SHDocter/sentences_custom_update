@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-11-15 00:02:04
+LastEditTime: 2023-11-18 23:21:10
 '''
 from nonebot import on_command
 from services.log import logger
@@ -91,6 +91,7 @@ __plugin_cd_limit__ = {
 quotations = on_command("楠桐语录", aliases={"楠桐语录", "腩酮语录", "腩通语录", "腩桐语录", "喃酮语录", "喃铜语录", "喃通语录", "喃桐语录", "南酮语录", "南铜语录", "南桐语录", "南通语录"}, priority=5, block=True)
 
 url = "http://sentence.nya-wsl.cn:8000/?c=c"
+EndTime = datetime.datetime(2023, 11, 23)
 
 ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
@@ -327,6 +328,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         else:
             db.write(event.user_id, event.group_id)
             db.uptate(event.user_id, CountDict=DatabaseDict)
+        if datetime.datetime.now() < EndTime:
+            if data["from_who"] in ["高橋はるき", "桑吉Sage", "晨于曦Asahi"]:
+                card = " | UR卡"
         result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
@@ -606,6 +610,9 @@ SSR：{ssr} | {ssr_all}条
                     card_ssr
                 if text["from_who"] not in CardPool:
                     card = ""
+                if datetime.datetime.now() < EndTime:
+                    if text["from_who"] in ["高橋はるき", "桑吉Sage", "晨于曦Asahi"]:
+                        card = " | UR卡"
                 data = {
             "type": "node",
             "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'},
