@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-11-18 22:09:12
+LastEditTime: 2023-12-07 18:41:40
 '''
 from nonebot import on_keyword, on_message, on_notice
 from services.log import logger
@@ -120,14 +120,14 @@ async def _(event: MessageEvent):
         UserList = json.load(ul)
     if f"{event.group_id}" in GroupList:
         # 用户限定功能1
-        if f"{event.user_id}" in UserList["yhm"]:
-            if re.search("yhm", str(event.message)) or re.search("樱花妹", str(event.message)):
-                ImgList = fnmatch.filter(os.listdir(ImagePath), "asahi*.*")
-                RandomImg = random.choice(ImgList)
-                result = image(ImagePath / RandomImg)
-                await send_img.send(result)
-                flush = gc.collect()
-                print(f"已成功清理内存：{flush}")
+        # if f"{event.user_id}" in UserList["yhm"]:
+        #     if re.search("yhm", str(event.message)) or re.search("樱花妹", str(event.message)):
+        #         ImgList = fnmatch.filter(os.listdir(ImagePath), "asahi*.*")
+        #         RandomImg = random.choice(ImgList)
+        #         result = image(ImagePath / RandomImg)
+        #         await send_img.send(result)
+        #         flush = gc.collect()
+        #         print(f"已成功清理内存：{flush}")
         # 全局功能，不限用户
         if f"{event.message}" == "我觉得行":
             length = len(os.listdir(ImagePath))
