@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
-LastEditTime: 2023-12-07 18:41:40
+LastEditTime: 2023-12-10 01:13:43
 '''
 from nonebot import on_keyword, on_message, on_notice
 from services.log import logger
@@ -173,7 +173,7 @@ async def _(event: GroupMessageEvent):
             _fudu_list.append(event.group_id, add_msg)
         if _fudu_list.size(event.group_id) >= 2:
             _fudu_list.clear(event.group_id)
-            if random.random() < 0.7 and not _fudu_list.is_repeater(event.group_id):
+            if random.random() <= 0.5 and not _fudu_list.is_repeater(event.group_id):
                 _fudu_list.set_repeater(event.group_id)
                 if img and msg:
                     rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
