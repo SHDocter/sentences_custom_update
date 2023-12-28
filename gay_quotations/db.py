@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:30:35
 LastEditors: 狐日泽
-LastEditTime: 2023-11-01 21:06:29
+LastEditTime: 2023-12-28 16:32:05
 '''
 import sqlite3
 from configs.path_config import DATA_PATH
@@ -20,7 +20,7 @@ def dict_factory(cursor, row):
 def create():
     conn = sqlite3.connect(DatabasePath)
     c = conn.cursor()
-    c.execute("CREATE TABLE hitokoto(user NOT NULL,N INT,R INT,SR INT,SSR INT,group_id)")
+    c.execute("CREATE TABLE hitokoto(user NOT NULL,N INT,R INT,SR INT,SSR INT,upload_count INT,group_id)")
     conn.commit()
     conn.close()
 
@@ -35,10 +35,10 @@ def check(user):
     conn.close()
     return result
 
-def write(user, group_id, n=0, r=0, sr=0, ssr=0):
+def write(user, group_id, n=0, r=0, sr=0, ssr=0, upload_count=0):
     conn = sqlite3.connect(DatabasePath)
     c = conn.cursor()
-    c.execute("INSERT INTO hitokoto (user,N,R,SR,SSR,group_id) VALUES (?,?,?,?,?,?)", (user, n, r, sr, ssr, group_id))
+    c.execute("INSERT INTO hitokoto (user,N,R,SR,SSR,upload_count,group_id) VALUES (?,?,?,?,?,?,?)", (user, n, r, sr, ssr, upload_count, group_id))
     conn.commit()
     conn.close()
 
@@ -58,3 +58,10 @@ def count(user):
     DatabaseCount = c.fetchall()
     conn.close()
     return DatabaseCount
+
+def sum():
+    conn = sqlite3.connect(DatabasePath)
+    c = conn.cursor()
+    result = c.execute(f"SELECT SUM(upload_count) FROM hitokoto").fetchone()[0]
+    conn.close()
+    return result

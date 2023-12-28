@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-12-28 16:10:03
+LastEditTime: 2023-12-28 17:39:22
 '''
 from nonebot import on_command
 from services.log import logger
@@ -15,6 +15,7 @@ from utils.http_utils import AsyncHttpx
 from configs.path_config import DATA_PATH, IMAGE_PATH
 from models.level_user import LevelUser
 from configs.config import Config
+from nonebot_plugin_userinfo import get_user_info
 from . import db
 import os
 import gc
@@ -639,20 +640,45 @@ SSR：{ssr} | {ssr_all}条
         #         break
         elif SentenceCheck in ["统计"]:
             result = db.count(str(event.user_id))
-            if result == []:
-                await quotations.finish("你在梦里抽的卡？")
-            else:
+            n, r, sr, ssr = 0, 0, 0, 0
+            if result != []:
                 result = result[0]
                 n = result["N"]
                 r = result["R"]
                 sr = result["SR"]
                 ssr = result["SSR"]
-                await quotations.finish(f"""从2023年11月1日21点40分开始，您一共抽取了{n + r + sr + ssr}条语录
-其中N卡{n}张，R卡{r}张，SR卡{sr}张，SSR卡{ssr}张""")
+                upload_count = result["upload_count"]
+                upload_all = db.sum()
+
+            try:
+                upload_percent = float(int(upload_count) / int(upload_all) * 10000 / 100)
+            except ZeroDivisionError:
+                upload_percent = 0
+
+            CountJson = open(CardCountPath, 'r')
+            c = CountJson.read()
+            CountJson.close()
+            CountList = json.loads(c)
+            CardDict = {}
+            DrawCount = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
+            card_count = 0
+            #card_count = Dict[nonebot.adapters.onebot.v11.event.sender()]
+            # print(get_user_info(bot, event, event.user_id))
+            # print(card_count)
+            card_percent = float(int(card_count) / int(DrawCount) * 10000 / 100)
+
+            await quotations.finish(f"""从2023年11月1日21点40分开始，您一共抽取了{n + r + sr + ssr}条语录
+其中N卡{n}张，R卡{r}张，SR卡{sr}张，SSR卡{ssr}张
+
+从2024年1月1日开始，您一共集了{upload_count}张卡，语录库有{upload_percent}%都是您集的呢
+
+语录库中您一共拥有{card_count}张卡，有{card_percent}%都是您呢（不包含异格）""")
+
         else:
             await quotations.finish("参数有误,code:10404，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
             print(f"已清理内存：{flush}")
+
     else:
         await quotations.finish("参数有误,code:10001，请使用'帮助楠桐语录'查看帮助...")
         flush = gc.collect()
