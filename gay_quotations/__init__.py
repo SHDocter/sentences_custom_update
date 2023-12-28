@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-12-25 10:59:45
+LastEditTime: 2023-12-28 16:10:03
 '''
 from nonebot import on_command
 from services.log import logger
@@ -338,7 +338,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         + result
     )
         flush = gc.collect()
-        print(f"已成功清理内存：{flush}")
+        print(f"已清理内存：{flush}")
     elif len(msg) >= 1:
         SentenceCheck = msg[0]
         DrawRegex = re.match(r"([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck)
@@ -383,7 +383,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]} | 抽取次数：{DrawAuthorCount}'
             await quotations.send(result)
             flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+            print(f"已清理内存：{flush}")
         elif re.match(r"(限定|指定)([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck):
             try:
                 MaxCount = MaxDrawCountLoad[f"{event.group_id}"]
@@ -433,7 +433,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 await bot.send_group_forward_msg(group_id=event.group_id, messages=msg_list)
             
             flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+            print(f"已清理内存：{flush}")
 
         elif SentenceCheck in ["查询","查询语录","语录查询"]:
             with open(MainConfigPath, "r", encoding="utf-8") as f:
@@ -521,7 +521,7 @@ SSR：{ssr} | {ssr_all}条
         }
             await bot.send_group_forward_msg(group_id=event.group_id, messages=data)
             flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+            print(f"已清理内存：{flush}")
 
         elif SentenceCheck in ["图片","图","截图"]:
             length = len(os.listdir(ScuImageGayPath))
@@ -540,7 +540,7 @@ SSR：{ssr} | {ssr_all}条
                 )
                 await quotations.send(result)
                 flush = gc.collect()
-                print(f"已成功清理内存：{flush}")
+                print(f"已清理内存：{flush}")
             else:
                 logger.info(
                     f"发送失败",
@@ -550,7 +550,7 @@ SSR：{ssr} | {ssr_all}条
                 )
                 await quotations.finish(f"发生错误！")
                 flush = gc.collect()
-                print(f"已成功清理内存：{flush}")
+                print(f"已清理内存：{flush}")
 
         elif DrawRegex:
             try:
@@ -633,7 +633,7 @@ SSR：{ssr} | {ssr_all}条
             msg_list.append(result)
             await bot.send_group_forward_msg(group_id=event.group_id, messages=msg_list)
             flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+            print(f"已清理内存：{flush}")
         # elif UpPoolRegex:
         #     while True:
         #         break
@@ -652,8 +652,8 @@ SSR：{ssr} | {ssr_all}条
         else:
             await quotations.finish("参数有误,code:10404，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+            print(f"已清理内存：{flush}")
     else:
         await quotations.finish("参数有误,code:10001，请使用'帮助楠桐语录'查看帮助...")
         flush = gc.collect()
-        print(f"已成功清理内存：{flush}")
+        print(f"已清理内存：{flush}")
