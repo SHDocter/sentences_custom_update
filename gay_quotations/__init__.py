@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2023-12-28 17:39:22
+LastEditTime: 2024-02-19 22:24:47
 '''
 from nonebot import on_command
 from services.log import logger
@@ -42,6 +42,8 @@ usage：
         楠桐语录 稀有度 查询
         楠桐语录稀有度 ssr/SSR 百分比(浮点数) | 楠桐语录 稀有度 角色 ssr/SSR
         例：楠桐语录稀有度 ssr 2.0 | 楠桐语录稀有度 晨于曦Asahi ssr
+        楠桐语录 统计
+        楠桐语录 统计 关键词(支持字典)
 
     累计抽卡数统计时间从2023.7.29 15:00开始
 
@@ -155,8 +157,11 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     f.close() # 关闭文件
     content = json.loads(text) # 转为List，List中为字典
     List = []
+    NameRegexList = []
     for _ in content:
         AuthorList = _["from_who"]
+        NameList = _["hitokoto"]
+        NameRegexList.append(NameList)
         List.append(AuthorList)
     Dict = {}
     for key in List:
@@ -639,6 +644,24 @@ SSR：{ssr} | {ssr_all}条
         #     while True:
         #         break
         elif SentenceCheck in ["统计"]:
+            if len(msg) >= 2:
+                RegexNameCount = 0
+                RegexAuthorCount = 0
+                name = msg[1]
+                for i in NameRegexList:
+                    NameRegex = re.search(name, i)
+                    if NameRegex:
+                        RegexNameCount += 1
+                for i in List:
+                    for key,value in UserDict.items():
+                        if key == name:
+                            name = value
+                    AuthorRegex = re.search(name, i)
+                    if AuthorRegex:
+                        RegexAuthorCount += 1
+                RegexAllCount = int(RegexNameCount) + int(RegexAuthorCount)
+                RegexPercent = float(int(RegexAllCount / len(content) * 10000) / 100)
+                await quotations.finish(f"""目前楠桐语录中有{RegexNameCount}条语录与{msg[1]}有关，有{RegexAuthorCount}条语录作者包含{name}，合计{RegexAllCount}条，占比{RegexPercent}%。""")
             result = db.count(str(event.user_id))
             n, r, sr, ssr = 0, 0, 0, 0
             if result != []:

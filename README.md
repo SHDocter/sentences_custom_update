@@ -1,11 +1,3 @@
-<!--
- * @Author: Nya-WSL
- * Copyright © 2023 by Nya-WSL All Rights Reserved. 
- * @Date: 2023-07-06 03:04:33
- * @LastEditors: 狐日泽
- * @LastEditTime: 2023-11-04 17:58:26
--->
-
 # Sentences Custom Update
 
 ![version](https://img.shields.io/badge/Version-1.1.3-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
@@ -168,6 +160,15 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 楠桐语录查询的占比将会按照语录数排序
 
 - 占比和统计改为从大到小排序
+
+- 楠桐语录统计新增关键词统计
+
+- 关键词统计作者支持字典
+
+- 关键词统计新增占比
+
+触发：
+楠桐语录 统计 关键词
 
 #### 1.1.3 | 2023.10.1
 
