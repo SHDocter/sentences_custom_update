@@ -3,11 +3,11 @@ Author: Nya-WSL
 Copyright © 2024 by Nya-WSL All Rights Reserved. 
 Date: 2024-02-25 19:18:52
 LastEditors: 狐日泽
-LastEditTime: 2024-02-25 19:45:17
+LastEditTime: 2024-02-28 17:36:06
 '''
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
+from nonebot.adapters.onebot.v11 import Message, MessageEvent
 from nonebot.params import CommandArg
 from configs.path_config import DATA_PATH
 
@@ -55,20 +55,21 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     else:
         with open(CakePath, "r", encoding="utf-8") as f:
             CakeData = json.loads(f.read())
-        key = f"{event.group_id} | {event.user_id} | {datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        key = f"{event.group_id},{event.sender.nickname},{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
         CakeData[key] = msg[0]
         with open(CakePath, "w", encoding="utf-8") as f:
             json.dump(CakeData, f, ensure_ascii=False, indent=4)
         await cmd.finish("新饼进炉辣!")
 
 @check_cmd.handle()
-async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+async def _():
     with open(CakePath, "r", encoding="utf-8") as f:
         CakeData = json.loads(f.read())
     cake = []
     for key,value in CakeData.items():
-        cake.append(value)
-    cake = str(cake).replace("'", "").replace("[", "").replace("]", "").replace(", ", "\n")
+        key = str(key).split(",")
+        cake.append(f"{key[1]} | {value}")
+    cake = str(cake).replace("'", "").replace("[", "").replace("]", "").replace(", ", "\n").replace("\"", "")
     await check_cmd.finish(f"""当前总画饼数：{len(CakeData)}
 
 尚未出炉的饼：
