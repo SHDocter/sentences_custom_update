@@ -3,7 +3,7 @@ Author: Nya-WSL
 Copyright © 2024 by Nya-WSL All Rights Reserved. 
 Date: 2024-02-25 19:18:52
 LastEditors: 狐日泽
-LastEditTime: 2024-02-28 17:36:06
+LastEditTime: 2024-02-29 15:14:17
 '''
 
 from nonebot import on_command
@@ -25,7 +25,7 @@ usage：
 """.strip()
 __plugin_des__ = "谁不爱画饼呢（"
 __plugin_cmd__ = ["画饼", "开炉"]
-__plugin_version__ = 0.1
+__plugin_version__ = 0.3
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -68,7 +68,7 @@ async def _():
     cake = []
     for key,value in CakeData.items():
         key = str(key).split(",")
-        cake.append(f"{key[1]} | {value}")
+        cake.append(f"{value} | {key[1]} | {str(key[2]).split('_')[0]}")
     cake = str(cake).replace("'", "").replace("[", "").replace("]", "").replace(", ", "\n").replace("\"", "")
     await check_cmd.finish(f"""当前总画饼数：{len(CakeData)}
 
