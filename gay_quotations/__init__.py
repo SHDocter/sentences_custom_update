@@ -3,19 +3,17 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2024-02-23 16:57:38
+LastEditTime: 2024-03-03 18:31:11
 '''
 from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
 from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
 from configs.path_config import DATA_PATH, IMAGE_PATH
 from models.level_user import LevelUser
 from configs.config import Config
-from nonebot_plugin_userinfo import get_user_info
 from . import db
 import os
 import gc
