@@ -3,7 +3,6 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-11-01 12:24:49
 LastEditors: 狐日泽
-LastEditTime: 2024-03-03 18:31:11
 '''
 from nonebot import on_command
 from services.log import logger
@@ -306,6 +305,20 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
+        up_user = "晨于曦Asahi"
+        up_percent = 40
+        if data["from_who"] != up_user:
+            print(f"未抽中{up_user}，判定概率：{up_percent}%，正在判定...")
+            if random.randint(1, 100) <= int(up_percent):
+                await quotations.send(f"判定成功，将随机抽取一张{up_user}替换卡面...")
+                data = (await AsyncHttpx.get(url, timeout=5)).json()
+                while data["from_who"] != up_user:
+                    print(f"未抽中{up_user}，继续抽取...")
+                    data = (await AsyncHttpx.get(url, timeout=5)).json()
+                else:
+                    print("抽取成功，内容：" + str({data["hitokoto"]}))
+            else:
+                print(f"判定失败！将跳过抽取{up_user}...")
         if data["from_who"] in n:
             card = " | N卡"
             CountList["n"] += 1
@@ -326,7 +339,6 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             card = ""
         with open(CardCountPath,'w',encoding='utf-8') as f:
             json.dump(CountList, f,ensure_ascii=False)
-        print(event.user_id)
         if db.check(str(event.user_id)) != []:
             db.uptate(event.user_id, CountDict=DatabaseDict)
         else:
