@@ -305,14 +305,14 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
-        up_user = "晨于曦Asahi"
+        up_user = ["晨于曦Asahi"]
         up_percent = 40
-        if data["from_who"] != up_user:
+        if data["from_who"] not in up_user:
             print(f"未抽中{up_user}，判定概率：{up_percent}%，正在判定...")
             if random.randint(1, 100) <= int(up_percent):
                 await quotations.send(f"判定成功，将随机抽取一张{up_user}替换卡面...")
                 data = (await AsyncHttpx.get(url, timeout=5)).json()
-                while data["from_who"] != up_user:
+                while data["from_who"] not in up_user:
                     print(f"未抽中{up_user}，继续抽取...")
                     data = (await AsyncHttpx.get(url, timeout=5)).json()
                 else:
