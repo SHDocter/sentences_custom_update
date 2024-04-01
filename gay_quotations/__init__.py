@@ -347,6 +347,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         if datetime.datetime.now() < EndTime:
             if data["from_who"] in ['稻荷神的灵狐', '高橋はるき', '浅律', '晨于曦Asahi', '桑吉Sage']:
                 card = " | UR卡"
+        if datetime.datetime.now() < datetime.datetime(2024, 4, 2):
+            card_list = ["N", "R", "SR", "SSR", "UR"]
+            card = f" | {random.choice(card_list)}卡"
         result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
