@@ -91,7 +91,7 @@ __plugin_cd_limit__ = {
 quotations = on_command("楠桐语录", aliases={"楠桐语录", "腩酮语录", "腩通语录", "腩桐语录", "喃酮语录", "喃铜语录", "喃通语录", "喃桐语录", "南酮语录", "南铜语录", "南桐语录", "南通语录"}, priority=5, block=True)
 
 url = "http://sentence.nya-wsl.cn:8000/?c=c"
-EndTime = datetime.datetime(2023, 12, 26)
+EndTime = datetime.datetime(2024, 5, 4)
 
 ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
@@ -345,11 +345,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             db.write(event.user_id, event.group_id)
             db.uptate(event.user_id, CountDict=DatabaseDict)
         if datetime.datetime.now() < EndTime:
-            if data["from_who"] in ['稻荷神的灵狐', '高橋はるき', '浅律', '晨于曦Asahi', '桑吉Sage']:
+            if data["from_who"] in ['晨于曦Asahi', '桑吉Sage']:
                 card = " | UR卡"
-        if datetime.datetime.now() < datetime.datetime(2024, 4, 2):
-            card_list = ["N", "R", "SR", "SSR", "UR"]
-            card = f" | {random.choice(card_list)}卡"
         result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
         await quotations.send(result)
         logger.info(
@@ -630,7 +627,7 @@ SSR：{ssr} | {ssr_all}条
                 if text["from_who"] not in CardPool:
                     card = ""
                 if datetime.datetime.now() < EndTime:
-                    if text["from_who"] in ['晨于曦Asahi', '冰蓝IceBlue', '晨宝的老公']:
+                    if text["from_who"] in ['晨于曦Asahi', '桑吉Sage']:
                         card = " | UR卡"
                 data = {
             "type": "node",
