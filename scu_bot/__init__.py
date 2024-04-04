@@ -3,19 +3,16 @@ Author: Nya-WSL
 Copyright © 2023 by Nya-WSL All Rights Reserved. 
 Date: 2023-08-30 00:47:09
 LastEditors: 狐日泽
-LastEditTime: 2023-10-21 00:52:39
 '''
 
 import os
 import re
 import json
-import uuid
 import fnmatch
 import datetime
 from nonebot import on_command
 from services.log import logger
 from configs.config import Config
-from nonebot.typing import T_State
 from nonebot.params import CommandArg
 from utils.message_builder import image
 from utils.utils import get_message_img, get_message_text
@@ -54,7 +51,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.1.3"
+__plugin_version__ = "1.2.0"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -101,9 +98,10 @@ ScuDataPath = DATA_PATH / "scu"
 ScuImagePath = IMAGE_PATH / "scu"
 UserDictPath = ScuDataPath / "user_dict.json"
 BlackListPath = ScuDataPath / "blacklist.json"
+ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
 
-UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
+UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
 ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
 RestoreSentence = on_command("还原语录", aliases={"还原语录"}, priority=5, block=True)
@@ -122,20 +120,20 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 1:
         await ExtractSentnces.finish("请选择语录！")
-    path = "/scu/"
+    path = "/var/www/ss-ana/data/"
     SentencesFile = ""
     if msg[0] in ["桑吉","桑吉语录"]:
-        SentencesFile = path + "a.json"
+        SentencesFile = path + "sage.json"
     elif msg[0] in ["羽月","羽月语录"]:
-        SentencesFile = path + "b.json"
+        SentencesFile = path + "chii.json"
     elif msg[0] in ["楠桐","楠桐语录"]:
-        SentencesFile = path + "c.json"
+        SentencesFile = path + "gay.json"
         if len(msg) < 2:
             await ExtractSentnces.finish("请选择作者！")
     elif msg[0] in ["小晨","小晨语录"]:
-        SentencesFile = path + "d.json"
+        SentencesFile = path + "asahi.json"
     elif msg[0] in ["语录","语录合集"]:
-        SentencesFile = path + "e.json"
+        SentencesFile = path + "collection.json"
         if len(msg) < 2:
             await ExtractSentnces.finish("请选择作者！")
     else:
@@ -156,8 +154,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 author = value
         FilePath = ScuDataPath / "cloud" / f"extract_{author}_{time}.json"
         for AuthorDict in SentencesList:
-            if AuthorDict["from_who"] == author:
-                ExtractList.append(AuthorDict["hitokoto"])
+            if AuthorDict["author"] == author:
+                ExtractList.append(AuthorDict["msg"])
         if ExtractList == []:
             await ExtractSentnces.finish("似乎没有这个人的语录")
         with open(FilePath, "w", encoding="utf-8") as f:
@@ -168,7 +166,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
 下载地址：
 https://cloud.nya-wsl.cn/pd/bot/extract_{author}_{time}.json
 
-Powered by Nya-WSL-Cloud
+Powered by Nya-WSL Cloud
 """
             await ExtractSentnces.send(result)
         else:
@@ -176,7 +174,7 @@ Powered by Nya-WSL-Cloud
     else:
         FilePath = ScuDataPath / "cloud" / f"extract_{msg[0]}_{time}.json"
         for Dict in SentencesList:
-            ExtractList.append(Dict["hitokoto"])
+            ExtractList.append(Dict["msg"])
         if ExtractList == []:
             await ExtractSentnces.finish("似乎没有这个人的语录")
         with open(FilePath, "w", encoding="utf-8") as f:
@@ -187,7 +185,7 @@ Powered by Nya-WSL-Cloud
 下载地址：
 https://cloud.nya-wsl.cn/pd/bot/extract_{author}_{time}.json
 
-Powered by Nya-WSL-Cloud
+Powered by Nya-WSL Cloud
 """
             await ExtractSentnces.send(result)
         else:
@@ -196,7 +194,7 @@ Powered by Nya-WSL-Cloud
 @ReloadSentences.handle()
 async def _():
     try:
-        os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
+        os.system("pm2 restart ss-ana")
         await CheckSentences.send("已重载语录！")
     except:
         await CheckSentences.send("重载发生错误！")
@@ -222,18 +220,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             )
     if len(msg) < 1:
         await RestoreSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
-    path = "/scu/"
+    path = "/var/www/ss-ana/data/"
     SentencesFile = ""
     if msg[0] in ["桑吉","桑吉语录"]:
-        SentencesFile = path + "a.json"
+        SentencesFile = path + "sage.json"
     elif msg[0] in ["羽月","羽月语录"]:
-        SentencesFile = path + "b.json"
+        SentencesFile = path + "chii.json"
     elif msg[0] in ["楠桐","楠桐语录"]:
-        SentencesFile = path + "c.json"
+        SentencesFile = path + "gay.json"
     elif msg[0] in ["小晨","小晨语录"]:
-        SentencesFile = path + "d.json"
+        SentencesFile = path + "asahi.json"
     elif msg[0] in ["语录","语录合集"]:
-        SentencesFile = path + "e.json"
+        SentencesFile = path + "collection.json"
     else:
         await RestoreSentence.finish("还原的语录不存在！")
 
@@ -245,7 +243,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
     if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
         try:
-            os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
+            os.system("pm2 restart ss-ana")
         except:
             await RestoreSentence.finish("已成功还原语录，但重载发生错误！")
         await RestoreSentence.finish("已成功还原并重载语录！")
@@ -267,18 +265,18 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             )
     if len(msg) < 1:
         await RevokeSentence.finish("请选择语录！")
-    path = "/scu/"
+    path = "/var/www/ss-ana/data/"
     SentencesFile = ""
     if msg[0] in ["桑吉","桑吉语录"]:
-        SentencesFile = path + "a.json"
+        SentencesFile = path + "sage.json"
     elif msg[0] in ["羽月","羽月语录"]:
-        SentencesFile = path + "b.json"
+        SentencesFile = path + "chii.json"
     elif msg[0] in ["楠桐","楠桐语录"]:
-        SentencesFile = path + "c.json"
+        SentencesFile = path + "gay.json"
     elif msg[0] in ["小晨","小晨语录"]:
-        SentencesFile = path + "d.json"
+        SentencesFile = path + "asahi.json"
     elif msg[0] in ["语录","语录合集"]:
-        SentencesFile = path + "e.json"
+        SentencesFile = path + "collection.json"
     else:
         await RevokeSentence.finish("撤回的语录不存在！")
 
@@ -298,7 +296,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     sf = f.read() # 读取语言
     f.close() # 关闭语言文件
     SentencesList = json.loads(sf) # 转为List，List中为字典
-    for i in range(number):
+    for _ in range(number):
         SentencesList.pop()
     with open(SentencesFile, "w", encoding="utf-8") as f:
         json.dump(SentencesList, f, indent=4, ensure_ascii=False)
@@ -306,7 +304,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     #     await RevokeSentence.finish("撤回过程中出现未知错误！")
     if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
         try:
-            os.system("chmod +x custom_plugins/scu_bot/restart.sh && custom_plugins/scu_bot/restart.sh")
+            os.system("pm2 restart ss-ana")
         except:
             await RevokeSentence.finish("已成功撤回语录，但重载发生错误！")
         await RevokeSentence.finish("已成功撤回并重载语录！")
@@ -459,7 +457,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
         try:
             Upload()
-            cmd = "custom_plugins/scu_bot/restart.sh"
+            cmd = "pm2 restart ss-ana"
             os.system(cmd)
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
@@ -473,16 +471,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     elif not event.reply:
         if len(msg) < 2:
             await UploadSentence.finish("参数不完全，请使用'！帮助上传语录'查看帮助...")
-        # if isinstance(event, GroupMessageEvent):
-        #     if not await LevelUser.check_level(
-        #         event.user_id,
-        #         event.group_id,
-        #         Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
-        #     ):
-        #         await UploadSentence.finish(
-        #             f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
-        #             at_sender=False
-        #         )
         sentence = msg[1]
         if SentenceName in ["楠桐","语录","楠桐语录","语录合集"]:
             try:
@@ -514,7 +502,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
         try:
             Upload()
-            cmd = "custom_plugins/scu_bot/restart.sh"
+            cmd = "pm2 restart ss-ana"
             os.system(cmd)
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
@@ -525,22 +513,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             + result
         )
 
-up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
-
-ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
-
 @up_img.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    # if isinstance(event, GroupMessageEvent):
-    #     if not await LevelUser.check_level(
-    #         event.user_id,
-    #         event.group_id,
-    #         Config.get_config("scu_bot", "SCU_GROUP_LEVEL"),
-    #     ):
-    #         await UploadSentence.finish(
-    #             f"您的权限不足，上传语录需要 {Config.get_config('scu_bot', 'SCU_GROUP_LEVEL')} 级权限..",
-    #             at_sender=False
-    #     )
     img = get_message_img(event.json())
     msg = arg.extract_plain_text().strip().split()
     if not event.reply:
@@ -581,19 +555,19 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
 def Upload():
     global id
-    path = "/scu/" # 语录的路径
+    path = "/var/www/ss-ana/data/" # 语录的路径
     SentencesFile = "" # 留空
 
     if SentenceName in ["桑吉","桑吉语录"]:
-        SentencesFile = path + "a.json" # 语录文件
+        SentencesFile = path + "sage.json" # 语录文件
     elif SentenceName in ["羽月","羽月语录"]:
-        SentencesFile = path + "b.json"
+        SentencesFile = path + "chii.json"
     elif SentenceName in ["楠桐","楠桐语录"]:
-        SentencesFile = path + "c.json"
+        SentencesFile = path + "gay.json"
     elif SentenceName in ["小晨","小晨语录"]:
-        SentencesFile = path + "d.json"
+        SentencesFile = path + "asahi.json"
     elif SentenceName in ["语录","语录合集"]:
-        SentencesFile = path + "e.json"
+        SentencesFile = path + "collection.json"
     else:
         UploadSentence.finish("该语录不存在！")
 
@@ -605,81 +579,41 @@ def Upload():
     f.close() # 关闭语言文件
     content = json.loads(text) # 转为List，List中为字典
     id = len(content) + 1 # 获取字典位数并加1的方式自动更新id
-    Uuid = str(uuid.uuid4()) # 基于随机数生成uuid，可能会有极小的概率重复
+    time = str(datetime.datetime.now().strftime('%Y年%m月%d日 %H:%M:%S'))
     if SentenceName in ["桑吉","桑吉语录"]:
         item_dict = {
-    "id": f"{id}", # 新的id，通过此方式写入双引号
-    "uuid": f"{Uuid}", # 新的uuid，通过此方式写入双引号
-    "hitokoto": f"{sentence}", # 需要添加的语录将填入这里，通过此方式写入双引号
-    "type": "a",
-    "from": "资本家聚集地",
-    "from_who": "桑吉Sage",
-    "creator": "桑吉Sage",
-    "creator_uid": "1",
-    "reviewer": "1",
-    "commit_from": "web",
-    "created_at": "1626590063",
-    "length": "19"
-} # 需添加的对象
+    "id": f"{id}",
+    "msg": f"{sentence}",
+    "author": "桑吉Sage", # 填入作者，通过此方式写入双引号
+    "time": f"{time}"
+}
     elif SentenceName in ["羽月","羽月语录"]:
         item_dict = {
     "id": f"{id}",
-    "uuid": f"{Uuid}",
-    "hitokoto": f"{sentence}",
-    "type": "b",
-    "from": "羽月ちい",
-    "from_who": "羽月ちい",
-    "creator": "羽月ちい",
-    "creator_uid": "1",
-    "reviewer": "1",
-    "commit_from": "web",
-    "created_at": "1626590063",
-    "length": "19"
+    "msg": f"{sentence}",
+    "author": "羽月ちい",
+    "time": f"{time}"
 }
     elif SentenceName in ["楠桐","楠桐语录"]:
         item_dict = {
     "id": f"{id}",
-    "uuid": f"{Uuid}",
-    "hitokoto": f"{sentence}",
-    "type": "c",
-    "from": f"{author}", # 填入作者，通过此方式写入双引号
-    "from_who": f"{author}",
-    "creator": f"{author}",
-    "creator_uid": "1",
-    "reviewer": "1",
-    "commit_from": "web",
-    "created_at": "1626590063",
-    "length": "19"
+    "msg": f"{sentence}",
+    "author": f"{author}", # 填入作者，通过此方式写入双引号
+    "time": f"{time}"
 }
     elif SentenceName in ["小晨","小晨语录"]:
         item_dict = {
     "id": f"{id}",
-    "uuid": f"{Uuid}",
-    "hitokoto": f"{sentence}",
-    "type": "d",
-    "from": "晨于曦Asahi",
-    "from_who": "晨于曦Asahi",
-    "creator": "晨于曦Asahi",
-    "creator_uid": "1",
-    "reviewer": "1",
-    "commit_from": "web",
-    "created_at": "1626590063",
-    "length": "19"
+    "msg": f"{sentence}",
+    "author": "晨于曦Asahi",
+    "time": f"{time}"
 }
     elif SentenceName in ["语录","语录合集"]:
         item_dict = {
     "id": f"{id}",
-    "uuid": f"{Uuid}",
-    "hitokoto": f"{sentence}",
-    "type": "e",
-    "from": f"{author}", # 填入作者，通过此方式写入双引号
-    "from_who": f"{author}",
-    "creator": f"{author}",
-    "creator_uid": "1",
-    "reviewer": "1",
-    "commit_from": "web",
-    "created_at": "1626590063",
-    "length": "19"
+    "msg": f"{sentence}",
+    "author": f"{author}", # 填入作者，通过此方式写入双引号
+    "time": f"{time}"
 }
     content.append(item_dict) # 将字典追加入列表
 
