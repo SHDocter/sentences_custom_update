@@ -90,7 +90,7 @@ __plugin_cd_limit__ = {
 
 quotations = on_command("楠桐语录", aliases={"楠桐语录", "腩酮语录", "腩通语录", "腩桐语录", "喃酮语录", "喃铜语录", "喃通语录", "喃桐语录", "南酮语录", "南铜语录", "南桐语录", "南通语录"}, priority=5, block=True)
 
-url = "http://sentence.nya-wsl.cn:8000/?c=c"
+url = "https://ana.sagesoft.ltd/nicegui/ana/gay/json"
 EndTime = datetime.datetime(2024, 5, 4)
 
 ScuDataPath = DATA_PATH / "scu"
@@ -145,7 +145,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     with open(UserDictPath, "r", encoding="utf-8") as ud:
         UserDict = json.load(ud)
     msg = arg.extract_plain_text().strip().split()
-    f = open("/root/sentences/sentences/c.json", 'r', encoding="utf-8") # 将文件写入缓存
+    f = open("/var/www/ss-ana/data/gay.json", 'r', encoding="utf-8") # 将文件写入缓存
     n = []
     r = []
     sr = []
@@ -156,8 +156,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     List = []
     NameRegexList = []
     for _ in content:
-        AuthorList = _["from_who"]
-        NameList = _["hitokoto"]
+        AuthorList = _["author"]
+        NameList = _["msg"]
         NameRegexList.append(NameList)
         List.append(AuthorList)
     Dict = {}
@@ -307,35 +307,35 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
         up_user = ["晨于曦Asahi"]
         up_percent = 40
-        if data["from_who"] not in up_user:
+        if data["author"] not in up_user:
             print(f"未抽中{up_user}，判定概率：{up_percent}%，正在判定...")
             if random.randint(1, 100) <= int(up_percent):
                 await quotations.send(f"判定成功，将随机抽取一张{up_user}替换卡面...")
                 data = (await AsyncHttpx.get(url, timeout=5)).json()
-                while data["from_who"] not in up_user:
+                while data["author"] not in up_user:
                     print(f"未抽中{up_user}，继续抽取...")
                     data = (await AsyncHttpx.get(url, timeout=5)).json()
                 else:
-                    print("抽取成功，内容：" + str({data["hitokoto"]}))
+                    print("抽取成功，内容：" + str({data["msg"]}))
             else:
                 print(f"判定失败！将跳过抽取{up_user}...")
-        if data["from_who"] in n:
+        if data["author"] in n:
             card = " | N卡"
             CountList["n"] += 1
             DatabaseDict["N"] = DatabaseDict["N"] + 1
-        if data["from_who"] in r:
+        if data["author"] in r:
             card = " | R卡"
             CountList["r"] += 1
             DatabaseDict["R"] = DatabaseDict["R"] + 1
-        if data["from_who"] in sr:
+        if data["author"] in sr:
             card = " | SR卡"
             CountList["sr"] += 1
             DatabaseDict["SR"] = DatabaseDict["SR"] + 1
-        if data["from_who"] in ssr:
+        if data["author"] in ssr:
             card = " | SSR卡"
             CountList["ssr"] += 1
             DatabaseDict["SSR"] = DatabaseDict["SSR"] + 1
-        if data["from_who"] not in CardPool:
+        if data["author"] not in CardPool:
             card = ""
         with open(CardCountPath,'w',encoding='utf-8') as f:
             json.dump(CountList, f,ensure_ascii=False)
@@ -345,9 +345,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             db.write(event.user_id, event.group_id)
             db.uptate(event.user_id, CountDict=DatabaseDict)
         if datetime.datetime.now() < EndTime:
-            if data["from_who"] in ['晨于曦Asahi', '桑吉Sage']:
+            if data["author"] in ['晨于曦Asahi', '桑吉Sage']:
                 card = " | UR卡"
-        result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]}{card}'
+        result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card}'
         await quotations.send(result)
         logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
@@ -388,7 +388,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             while True:
                 data = (await AsyncHttpx.get(url, timeout=10)).json()
                 DrawAuthorCount += 1
-                if data["from_who"] == DrawAuthor:
+                if data["author"] == DrawAuthor:
                     break
                 elif DrawAuthorCount == 500:
                     break
@@ -396,7 +396,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 result = f"抽了{DrawAuthorCount}次都没抽到，你真是个非酋"
                 await quotations.send(result)
             else:
-                result = f'〔g{data["id"]}〕 {data["hitokoto"]} | {data["from_who"]} | 抽取次数：{DrawAuthorCount}'
+                result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]} | 抽取次数：{DrawAuthorCount}'
             await quotations.send(result)
             flush = gc.collect()
             print(f"已清理内存：{flush}")
@@ -432,13 +432,13 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 while True:
                     text = (await AsyncHttpx.get(url, timeout=10)).json()
                     DrawAuthorCount += 1
-                    if text["from_who"] == DrawAuthor:
+                    if text["author"] == DrawAuthor:
                         break
                     elif DrawAuthorCount == int(MaxDrawCount):
                         break
                 data = {
             "type": "node",
-            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]} | 抽取次数：{DrawAuthorCount}'},
+            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["msg"]} | {text["author"]} | 抽取次数：{DrawAuthorCount}'},
         }
                 msg_list.append(data)
 
@@ -596,42 +596,42 @@ SSR：{ssr} | {ssr_all}条
             for i in range(int(DrawCount)):
                 text = (await AsyncHttpx.get(url, timeout=10)).json()
                 card = ""
-                if text["from_who"] in n:
+                if text["author"] in n:
                     card = " | N卡"
                     card_n += 1
                     CountList["n"] += 1
                     DatabaseDict["N"] = DatabaseDict["N"] + 1
                 else:
                     card_n
-                if text["from_who"] in r:
+                if text["author"] in r:
                     card = " | R卡"
                     card_r += 1
                     CountList["r"] += 1
                     DatabaseDict["R"] = DatabaseDict["R"] + 1
                 else:
                     card_r
-                if text["from_who"] in sr:
+                if text["author"] in sr:
                     card = " | SR卡"
                     card_sr += 1
                     CountList["sr"] += 1
                     DatabaseDict["SR"] = DatabaseDict["SR"] + 1
                 else:
                     card_sr
-                if text["from_who"] in ssr:
+                if text["author"] in ssr:
                     card = " | SSR卡"
                     card_ssr += 1
                     CountList["ssr"] += 1
                     DatabaseDict["SSR"] = DatabaseDict["SSR"] + 1
                 else:
                     card_ssr
-                if text["from_who"] not in CardPool:
+                if text["author"] not in CardPool:
                     card = ""
                 if datetime.datetime.now() < EndTime:
-                    if text["from_who"] in ['晨于曦Asahi', '桑吉Sage']:
+                    if text["author"] in ['晨于曦Asahi', '桑吉Sage']:
                         card = " | UR卡"
                 data = {
             "type": "node",
-            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["hitokoto"]} | {text["from_who"]}{card}'},
+            "data": {"name": "楠桐语录", "uin": f"{bot.self_id}", "content": f'〔g{text["id"]}〕 {text["msg"]} | {text["author"]}{card}'},
         }
                 msg_list.append(data)
 

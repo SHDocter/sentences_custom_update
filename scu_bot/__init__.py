@@ -74,12 +74,6 @@ __plugin_configs__ = {
         "default_value": 6,
         "type": int,
     },
-    "SCU_AUTO_RELOAD": {
-        "value": True,
-        "help": "还原或撤回语录后是否自动重载语录",
-        "default_value": True,
-        "type": bool,
-    },
     "SCU_REVERT_LEVEL": {
         "value": 6,
         "help": "群内撤回语录需要的权限",
@@ -103,7 +97,6 @@ ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
 UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
-ReloadSentences = on_command("重载语录", aliases={"重载语录"}, priority=5, block=True)
 RestoreSentence = on_command("还原语录", aliases={"还原语录"}, priority=5, block=True)
 RevokeSentence = on_command("撤回语录", aliases={"撤回语录"}, priority=5, block=True)
 ExtractSentnces = on_command("提取语录", aliases={"下载语录"}, priority=5, block=True)
@@ -191,14 +184,6 @@ Powered by Nya-WSL Cloud
         else:
             await ExtractSentnces.finish("提取语录发生错误！")
 
-@ReloadSentences.handle()
-async def _():
-    try:
-        os.system("pm2 restart ss-ana")
-        await CheckSentences.send("已重载语录！")
-    except:
-        await CheckSentences.send("重载发生错误！")
-
 @CheckSentences.handle()
 async def _():
     SentencesList = "桑吉语录 羽月语录 楠桐语录 小晨语录 语录合集"
@@ -240,15 +225,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         os.system(f"cp -rf {SentencesFile}.restore {SentencesFile}")
     except:
         await RestoreSentence.finish("还原过程中出现未知错误！")
-
-    if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
-        try:
-            os.system("pm2 restart ss-ana")
-        except:
-            await RestoreSentence.finish("已成功还原语录，但重载发生错误！")
-        await RestoreSentence.finish("已成功还原并重载语录！")
-    else:
-        await RestoreSentence.finish("已成功还原语录，请手动重载语录！")
 
 @RevokeSentence.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
@@ -302,14 +278,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         json.dump(SentencesList, f, indent=4, ensure_ascii=False)
     # except:
     #     await RevokeSentence.finish("撤回过程中出现未知错误！")
-    if Config.get_config('scu_bot', 'SCU_AUTO_RELOAD'):
-        try:
-            os.system("pm2 restart ss-ana")
-        except:
-            await RevokeSentence.finish("已成功撤回语录，但重载发生错误！")
-        await RevokeSentence.finish("已成功撤回并重载语录！")
-    else:
-        await RevokeSentence.finish("已成功撤回语录，请手动重载语录！")
 
 @UploadSentence.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
@@ -457,8 +425,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
         try:
             Upload()
-            cmd = "pm2 restart ss-ana"
-            os.system(cmd)
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
         except:
@@ -502,8 +468,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
         try:
             Upload()
-            cmd = "pm2 restart ss-ana"
-            os.system(cmd)
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
         except:

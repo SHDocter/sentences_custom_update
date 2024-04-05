@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.1.3-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.2.1-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -185,6 +185,26 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 现在判定成功时将会发送一条消息
 
 - 楠桐语录up卡功能扩展为列表
+
+- 楠桐语录适配新的语录系统
+
+- 因隐私问题，其他语录暂无适配计划
+
+注：因MariaGo的协议bug，所有使用了合并转发协议的功能目前均不可用，包括但不限于楠桐语录查询、n抽等
+
+目前正在等待官方修复，如长期未修复我们将考虑使用另一种方式尝试缓解发送消息过长被风控的问题
+
+#### 1.2.1 | 2024.4.5
+
+- 新语录系统不再需要重启读取语录数据，移除所有重载语录功能
+
+#### 1.2.0 | 2024.4.4
+
+- 适配新的语录系统
+
+- 移除uuid
+
+- 修复上传图片的命令会被注册两次的问题
 
 #### 1.1.3 | 2023.10.1
 
