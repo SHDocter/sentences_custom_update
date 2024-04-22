@@ -5,7 +5,7 @@ Date: 2023-09-25 21:46:47
 LastEditors: 狐日泽
 LastEditTime: 2023-12-10 01:13:43
 '''
-from nonebot import on_keyword, on_message, on_notice
+from nonebot import on_keyword, on_message, on_notice, require, get_driver
 from services.log import logger
 from nonebot.adapters.onebot.v11 import MessageEvent
 from utils.message_builder import image
@@ -23,6 +23,11 @@ import re
 import json
 import random
 import fnmatch
+import datetime
+
+require("nonebot_plugin_apscheduler")
+from nonebot_plugin_apscheduler import scheduler
+scheduler = scheduler
 
 __zx_plugin_name__ = "我觉得行"
 __plugin_cmd__ = ["我觉得行"]
@@ -148,6 +153,36 @@ async def _(event: MessageEvent):
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
 
+@scheduler.scheduled_job(
+    "cron",
+    hour=0,
+    minute=1,
+)
+async def _():
+    print("debug:init")
+    if datetime.datetime.now().weekday() == 1:
+        with open(GroupListPath, "r", encoding="utf-8") as gl:
+            GroupList = json.load(gl)
+        driver = get_driver()
+        BOT_ID = str(driver.config.bot_id)
+        bot = driver.bots[BOT_ID]
+
+        print("debug:true")
+        length = len(os.listdir(ImagePath))
+        if length == 0:
+            logger.warning(f"彩蛋图库为空，调用取消！")
+        result = image("scu/easter_egg/" + "blhx.jpg")
+        for group_id in GroupList:
+            await bot.send_group_msg(
+                group_id=group_id,
+                message=result
+            )
+        flush = gc.collect()
+        print(f"已成功清理内存：{flush}")
+    else:
+        print("debug:false")
+        pass
+
 @fudu.handle()
 async def _(event: GroupMessageEvent):
     with open(GroupListPath, "r", encoding="utf-8") as gl:
@@ -173,7 +208,7 @@ async def _(event: GroupMessageEvent):
             _fudu_list.append(event.group_id, add_msg)
         if _fudu_list.size(event.group_id) >= 2:
             _fudu_list.clear(event.group_id)
-            if random.random() <= 0.5 and not _fudu_list.is_repeater(event.group_id):
+            if random.random() <= 0.9 and not _fudu_list.is_repeater(event.group_id):
                 _fudu_list.set_repeater(event.group_id)
                 if img and msg:
                     rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
