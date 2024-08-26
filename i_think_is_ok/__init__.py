@@ -22,12 +22,10 @@ import gc
 import re
 import json
 import random
-import fnmatch
-import datetime
 
-require("nonebot_plugin_apscheduler")
-from nonebot_plugin_apscheduler import scheduler
-scheduler = scheduler
+# require("nonebot_plugin_apscheduler")
+# from nonebot_plugin_apscheduler import scheduler
+# scheduler = scheduler
 
 __zx_plugin_name__ = "我觉得行"
 __plugin_cmd__ = ["我觉得行"]
@@ -37,7 +35,7 @@ __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["楠桐语录"],
+    "cmd": ["我觉得行"],
 }
 __plugin_type__ = ("语录", 1)
 __plugin_usage__ = """
@@ -153,35 +151,35 @@ async def _(event: MessageEvent):
             flush = gc.collect()
             print(f"已成功清理内存：{flush}")
 
-@scheduler.scheduled_job(
-    "cron",
-    hour=0,
-    minute=1,
-)
-async def _():
-    print("debug:init")
-    if datetime.datetime.now().weekday() == 1:
-        with open(GroupListPath, "r", encoding="utf-8") as gl:
-            GroupList = json.load(gl)
-        driver = get_driver()
-        BOT_ID = str(driver.config.bot_id)
-        bot = driver.bots[BOT_ID]
+# @scheduler.scheduled_job(
+#     "cron",
+#     hour=0,
+#     minute=1,
+# )
+# async def _():
+#     print("debug:init")
+#     if datetime.datetime.now().weekday() == 1:
+#         with open(GroupListPath, "r", encoding="utf-8") as gl:
+#             GroupList = json.load(gl)
+#         driver = get_driver()
+#         BOT_ID = str(driver.config.bot_id)
+#         bot = driver.bots[BOT_ID]
 
-        print("debug:true")
-        length = len(os.listdir(ImagePath))
-        if length == 0:
-            logger.warning(f"彩蛋图库为空，调用取消！")
-        result = image("scu/easter_egg/" + "blhx.jpg")
-        for group_id in GroupList:
-            await bot.send_group_msg(
-                group_id=group_id,
-                message=result
-            )
-        flush = gc.collect()
-        print(f"已成功清理内存：{flush}")
-    else:
-        print("debug:false")
-        pass
+#         print("debug:true")
+#         length = len(os.listdir(ImagePath))
+#         if length == 0:
+#             logger.warning(f"彩蛋图库为空，调用取消！")
+#         result = image("scu/easter_egg/" + "blhx.jpg")
+#         for group_id in GroupList:
+#             await bot.send_group_msg(
+#                 group_id=group_id,
+#                 message=result
+#             )
+#         flush = gc.collect()
+#         print(f"已成功清理内存：{flush}")
+#     else:
+#         print("debug:false")
+#         pass
 
 @fudu.handle()
 async def _(event: GroupMessageEvent):
