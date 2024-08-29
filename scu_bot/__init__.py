@@ -335,6 +335,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         if len(msg) > 1:
             if msg[1] in ["查询"]:
                 result = str(UserDict).replace("{", "").replace("}", "").replace(":", " = ").replace("'", "").replace(", ", "\n")
+                if result == "":
+                    result = "当前字典为空！"
                 await UploadSentence.finish(result)
         if event.reply:
             if len(msg) < 2:
