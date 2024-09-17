@@ -472,16 +472,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         else:
             await UploadSentence.finish("该语录不存在！")
 
-        try:
-            Upload()
-            result_id = result + f" id:{id}"
-            await UploadSentence.send(result_id)
-        except:
-            await UploadSentence.finish("发生错误！")
-        logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 上传语录:"
-            + result
-        )
+        Upload()
+        result_id = result + f" id:{id}"
+        await UploadSentence.send(result_id)
 
 @up_img.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
