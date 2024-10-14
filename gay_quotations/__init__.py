@@ -305,15 +305,19 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
-        up_user = ["晨于曦Asahi"]
-        up_percent = 40
+        up_user = ["晨于曦Asahi", "桑吉Sage"]
+        up_percent = 35
+        up_count = 0
+        up_status = False
         if data["author"] not in up_user:
             print(f"未抽中{up_user}，判定概率：{up_percent}%，正在判定...")
             if random.randint(1, 100) <= int(up_percent):
-                await quotations.send(f"判定成功，将随机抽取一张{up_user}替换卡面...")
+                await quotations.send(f"up判定成功，将随机抽取一张{up_user}...")
+                up_status = True
                 data = (await AsyncHttpx.get(url, timeout=5)).json()
                 while data["author"] not in up_user:
                     print(f"未抽中{up_user}，继续抽取...")
+                    up_count += 1
                     data = (await AsyncHttpx.get(url, timeout=5)).json()
                 else:
                     print("抽取成功，内容：" + str({data["msg"]}))
@@ -347,12 +351,12 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         if datetime.datetime.now() < EndTime:
             if data["author"] in ['晨于曦Asahi', '桑吉Sage']:
                 card = " | UR卡"
-        result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card}'
+        result = ""
+        if up_status:
+            result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card} | 抽取次数：{up_count}'
+        else:
+            result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card}'
         await quotations.send(result)
-        logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送语录:"
-        + result
-    )
         flush = gc.collect()
         print(f"已清理内存：{flush}")
     elif len(msg) >= 1:
