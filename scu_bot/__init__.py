@@ -1,10 +1,3 @@
-'''
-Author: Nya-WSL
-Copyright © 2023 by Nya-WSL All Rights Reserved. 
-Date: 2023-08-30 00:47:09
-LastEditors: 狐日泽
-'''
-
 import os
 import re
 import json
@@ -55,7 +48,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.2.0"
+__plugin_version__ = "1.2.2"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -134,7 +127,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         if len(msg) < 2:
             await ExtractSentnces.finish("请选择作者！")
     else:
-        await RevokeSentence.finish("提取的语录不存在！")
+        await ExtractSentnces.finish("提取的语录不存在！")
     f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
     sf = f.read() # 读取语言
     f.close() # 关闭语言文件
@@ -280,6 +273,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         SentencesList.pop()
     with open(SentencesFile, "w", encoding="utf-8") as f:
         json.dump(SentencesList, f, indent=4, ensure_ascii=False)
+    await RevokeSentence.finish("撤回成功！")
     # except:
     #     await RevokeSentence.finish("撤回过程中出现未知错误！")
 
