@@ -1,10 +1,3 @@
-'''
-Author: Nya-WSL
-Copyright © 2023 by Nya-WSL All Rights Reserved. 
-Date: 2023-09-25 21:46:47
-LastEditors: 狐日泽
-LastEditTime: 2023-12-10 01:13:43
-'''
 from nonebot import on_keyword, on_message, on_notice, require, get_driver
 from services.log import logger
 from nonebot.adapters.onebot.v11 import MessageEvent
@@ -88,7 +81,7 @@ class Fudu:
 
 _fudu_list = Fudu()
 
-send_img = on_keyword({"yhm", "樱花妹", "我觉得行", "傲娇"}, priority=5, block=True)
+send_img = on_message(permission=GROUP, priority=999)
 fudu = on_message(permission=GROUP, priority=999)
 
 ImagePath = IMAGE_PATH / "scu/easter_egg"
@@ -119,8 +112,8 @@ if not UserListPath.exists():
 async def _(event: MessageEvent):
     with open(GroupListPath, "r", encoding="utf-8") as gl:
         GroupList = json.load(gl)
-    with open(UserListPath, "r", encoding="utf-8") as ul:
-        UserList = json.load(ul)
+    # with open(UserListPath, "r", encoding="utf-8") as ul:
+    #     UserList = json.load(ul)
     if f"{event.group_id}" in GroupList:
         # 用户限定功能1
         # if f"{event.user_id}" in UserList["yhm"]:
@@ -132,15 +125,18 @@ async def _(event: MessageEvent):
         #         flush = gc.collect()
         #         print(f"已成功清理内存：{flush}")
         # 全局功能，不限用户
-        if f"{event.message}" == "我觉得行":
-            length = len(os.listdir(ImagePath))
-            if length == 0:
-                logger.warning(f"彩蛋图库为空，调用取消！")
-                await send_img.finish("哥们没活了呜呜呜")
-            result = image("scu/easter_egg/" + "1.jpg")
-            await send_img.send(result)
-            flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+        # if f"{event.message}" == "我觉得行":
+        if re.search(r"我*觉*得*行", str(event.message)):
+            if str(event.message) not in ["我觉得不行", "我不觉得行", "不我觉得行"]:
+                if not re.search(r"不[,， ]+", str(event.message)):
+                    length = len(os.listdir(ImagePath))
+                    if length == 0:
+                        logger.warning(f"彩蛋图库为空，调用取消！")
+                        await send_img.finish("哥们没活了呜呜呜")
+                    result = image("scu/easter_egg/" + "1.jpg")
+                    await send_img.send(result)
+                    flush = gc.collect()
+                    print(f"已成功清理内存：{flush}")
         if re.search("傲娇", str(event.message)):
             length = len(os.listdir(ImagePath))
             if length == 0:
