@@ -126,17 +126,16 @@ async def _(event: MessageEvent):
         #         print(f"已成功清理内存：{flush}")
         # 全局功能，不限用户
         # if f"{event.message}" == "我觉得行":
-        if re.search(r"我*觉*得*行", str(event.message)):
-            if str(event.message) not in ["我觉得不行", "我不觉得行", "不我觉得行"]:
-                if not re.search(r"不[,， ]+", str(event.message)):
-                    length = len(os.listdir(ImagePath))
-                    if length == 0:
-                        logger.warning(f"彩蛋图库为空，调用取消！")
-                        await send_img.finish("哥们没活了呜呜呜")
-                    result = image("scu/easter_egg/" + "1.jpg")
-                    await send_img.send(result)
-                    flush = gc.collect()
-                    print(f"已成功清理内存：{flush}")
+        if re.search("行", str(event.message)):
+            if re.search("[我俺你您他她它ta]", str(event.message)) and re.search("觉得|寻思", str(event.message)) and not re.search("不", str(event.message)) or re.search("不*[我俺你您他她它ta]觉得行|不*[我俺你您他她它ta]寻思行", str(event.message)):
+                length = len(os.listdir(ImagePath))
+                if length == 0:
+                    logger.warning(f"彩蛋图库为空，调用取消！")
+                    await send_img.finish("哥们没活了呜呜呜")
+                result = image("scu/easter_egg/" + "1.jpg")
+                await send_img.send(result)
+                flush = gc.collect()
+                print(f"已成功清理内存：{flush}")
         if re.search("傲娇", str(event.message)):
             length = len(os.listdir(ImagePath))
             if length == 0:
