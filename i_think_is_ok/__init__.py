@@ -201,7 +201,8 @@ async def _(event: GroupMessageEvent):
             _fudu_list.append(event.group_id, add_msg)
         if _fudu_list.size(event.group_id) >= 2:
             _fudu_list.clear(event.group_id)
-            if random.random() <= 0.9 and not _fudu_list.is_repeater(event.group_id):
+            percent = random.random()
+            if percent <= 0.3 and not _fudu_list.is_repeater(event.group_id):
                 _fudu_list.set_repeater(event.group_id)
                 if img and msg:
                     rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
@@ -215,6 +216,8 @@ async def _(event: GroupMessageEvent):
                     await fudu.finish(rst)
                     flush = gc.collect()
                     print(f"已成功清理内存：{flush}")
+            elif percent > 0.3 and percent <= 0.8 and not _fudu_list.is_repeater(event.group_id):
+                logger.warning("跳过复读...")
             else:
                 await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
                 flush = gc.collect()
@@ -238,14 +241,14 @@ async def handle_rule(bot: Bot, event: Event) -> bool:
         return True
     return False
 
-message_back = on_notice(rule=handle_rule, priority=50)
+# message_back = on_notice(rule=handle_rule, priority=50)
 
-@message_back.handle()
-async def message_back_handle(bot: Bot, Gevent: GroupRecallNoticeEvent):
-    with open(GroupListPath, "r", encoding="utf-8") as gl:
-        GroupList = json.load(gl)
-    if f"{Gevent.group_id}" in GroupList:
-        if Gevent.user_id == Gevent.operator_id:
-            await bot.call_api('get_msg', **{"message_id": Gevent.message_id}) # 获取撤回的消息id
-            result = image("scu/easter_egg/" + "2.jpg")
-            await message_back.finish(result)
+# @message_back.handle()
+# async def message_back_handle(bot: Bot, Gevent: GroupRecallNoticeEvent):
+#     with open(GroupListPath, "r", encoding="utf-8") as gl:
+#         GroupList = json.load(gl)
+#     if f"{Gevent.group_id}" in GroupList:
+#         if Gevent.user_id == Gevent.operator_id:
+#             await bot.call_api('get_msg', **{"message_id": Gevent.message_id}) # 获取撤回的消息id
+#             result = image("scu/easter_egg/" + "2.jpg")
+#             await message_back.finish(result)
