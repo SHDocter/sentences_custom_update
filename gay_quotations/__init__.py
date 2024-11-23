@@ -90,7 +90,7 @@ __plugin_cd_limit__ = {
 
 quotations = on_command("楠桐语录", aliases={"楠桐语录", "腩酮语录", "腩通语录", "腩桐语录", "喃酮语录", "喃铜语录", "喃通语录", "喃桐语录", "南酮语录", "南铜语录", "南桐语录", "南通语录"}, priority=5, block=True)
 
-url = "https://ana.sagesoft.ltd/nicegui/ana/gay/json"
+url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
 EndTime = datetime.datetime(2024, 5, 4)
 
 ScuDataPath = DATA_PATH / "scu"
