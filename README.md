@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.2.1-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.2.2.194-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -208,6 +208,20 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 彩蛋移除yhm
 
 - 彩蛋我觉得行现在支持正则，可以匹配更广义的我觉得行
+
+- 复读功能开放，不再有群限制
+
+- 调整复读概率，现在不再会打断复读，并且有15%的概率复读，85%的概率跳过复读，如果跳过复读，下一次复读将获得15%概率up，之后的复读将获得10%概率up直到触发为止
+
+概率up：[15%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%]
+
+注：该功能可能会出现预料之外的问题
+
+#### 1.2.2 | 2024.11.13
+
+- 修复撤回语录后没有提示的问题
+
+- 修复还原语录的提示使用了撤回语录调用的问题
 
 #### 1.2.1 | 2024.4.5
 

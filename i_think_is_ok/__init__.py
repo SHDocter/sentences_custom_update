@@ -178,50 +178,67 @@ async def _(event: MessageEvent):
 
 @fudu.handle()
 async def _(event: GroupMessageEvent):
-    with open(GroupListPath, "r", encoding="utf-8") as gl:
-        GroupList = json.load(gl)
-    if f"{event.group_id}" in GroupList:
-        if event.is_tome():
-            return
-        img = get_message_img(event.json())
-        msg = get_message_text(event.json())
-        if not img and not msg:
-            return
-        if img:
-            img_hash = await get_fudu_img_hash(img[0], event.group_id)
-        else:
-            img_hash = ""
-        add_msg = msg + "|-|" + img_hash
-        if _fudu_list.size(event.group_id) == 0:
-            _fudu_list.append(event.group_id, add_msg)
-        elif _fudu_list.check(event.group_id, add_msg):
-            _fudu_list.append(event.group_id, add_msg)
-        else:
-            _fudu_list.clear(event.group_id)
-            _fudu_list.append(event.group_id, add_msg)
-        if _fudu_list.size(event.group_id) >= 2:
-            _fudu_list.clear(event.group_id)
-            percent = random.random()
-            if percent <= 0.3 and not _fudu_list.is_repeater(event.group_id):
-                _fudu_list.set_repeater(event.group_id)
-                if img and msg:
-                    rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
-                elif img:
-                    rst = image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
-                elif msg:
-                    rst = msg
-                else:
-                    rst = ""
-                if rst:
-                    await fudu.finish(rst)
-                    flush = gc.collect()
-                    print(f"已成功清理内存：{flush}")
-            elif percent > 0.3 and percent <= 0.8 and not _fudu_list.is_repeater(event.group_id):
-                logger.warning("跳过复读...")
+    init = 0.15
+    percent = random.random()
+    if event.is_tome():
+        return
+    img = get_message_img(event.json())
+    msg = get_message_text(event.json())
+    if not img and not msg:
+        return
+    if img:
+        img_hash = await get_fudu_img_hash(img[0], event.group_id)
+    else:
+        img_hash = ""
+    add_msg = msg + "|-|" + img_hash
+    if _fudu_list.size(event.group_id) == 0:
+        _fudu_list.append(event.group_id, add_msg)
+    elif _fudu_list.check(event.group_id, add_msg):
+        _fudu_list.append(event.group_id, add_msg)
+    else:
+        _fudu_list.clear(event.group_id)
+        _fudu_list.append(event.group_id, add_msg)
+    if _fudu_list.size(event.group_id) == 2:
+        # _fudu_list.clear(event.group_id)
+        if percent <= init and not _fudu_list.is_repeater(event.group_id):
+            _fudu_list.set_repeater(event.group_id)
+            if img and msg:
+                rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+            elif img:
+                rst = image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+            elif msg:
+                rst = msg
             else:
-                await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
+                rst = ""
+            if rst:
+                _fudu_list.clear(event.group_id)
+                await fudu.finish(rst)
                 flush = gc.collect()
                 print(f"已成功清理内存：{flush}")
+        else:
+            logger.warning("跳过复读...2")
+        # else:
+        #     await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
+        #     flush = gc.collect()
+        #     print(f"已成功清理内存：{flush}")
+    if _fudu_list.size(event.group_id) > 2:
+        if percent <= float(f"0.{_fudu_list.size(event.group_id)}") and not _fudu_list.is_repeater(event.group_id):
+            _fudu_list.set_repeater(event.group_id)
+            if img and msg:
+                rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+            elif img:
+                rst = image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+            elif msg:
+                rst = msg
+            else:
+                rst = ""
+            if rst:
+                _fudu_list.clear(event.group_id)
+                await fudu.finish(rst)
+                flush = gc.collect()
+                print(f"已成功清理内存：{flush}")
+        else:
+            logger.warning(f"跳过复读...当前概率：{_fudu_list.size(event.group_id)}0%")
 
 async def get_fudu_img_hash(url, group_id):
     try:
