@@ -5,6 +5,7 @@ from utils.message_builder import image
 from utils.http_utils import AsyncHttpx
 from configs.path_config import TEMP_PATH
 from utils.image_utils import get_img_hash
+from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from utils.utils import get_message_text, get_message_img
 from nonebot.adapters.onebot.v11.permission import GROUP
@@ -41,6 +42,15 @@ install：
     除了我觉得行功能以外，其他用户限定功能发送人qq号或者id需要存在于user_list.json中相关的键的值（值可以是列表指定多个用户，也可以是字符串指定单个用户）才能触发
     打断复读功能仅受group_list限制不受用户限制
 """.strip()
+
+__plugin_configs__ = {
+    "I_THINK_RANDOM_MODE": {
+        "value": 6,
+        "help": "是否启用随机发送楠桐语录",
+        "default_value": True,
+        "type": float,
+    }
+}
 
 class Fudu:
     def __init__(self):
@@ -123,7 +133,7 @@ async def _(event: MessageEvent):
         #         result = image(ImagePath / RandomImg)
         #         await send_img.send(result)
         #         flush = gc.collect()
-        #         print(f"已成功清理内存：{flush}")
+        #         logger.info(f"已成功清理内存：{flush}")
         # 全局功能，不限用户
         # if f"{event.message}" == "我觉得行":
         if re.search("行", str(event.message)):
@@ -135,7 +145,7 @@ async def _(event: MessageEvent):
                 result = image("scu/easter_egg/" + "1.jpg")
                 await send_img.send(result)
                 flush = gc.collect()
-                print(f"已成功清理内存：{flush}")
+                logger.info(f"已成功清理内存：{flush}")
         if re.search("傲娇", str(event.message)):
             length = len(os.listdir(ImagePath))
             if length == 0:
@@ -144,7 +154,7 @@ async def _(event: MessageEvent):
             result = image("scu/easter_egg/" + "1.gif")
             await send_img.send(result)
             flush = gc.collect()
-            print(f"已成功清理内存：{flush}")
+            logger.info(f"已成功清理内存：{flush}")
 
 # @scheduler.scheduled_job(
 #     "cron",
@@ -171,7 +181,7 @@ async def _(event: MessageEvent):
 #                 message=result
 #             )
 #         flush = gc.collect()
-#         print(f"已成功清理内存：{flush}")
+#         logger.info(f"已成功清理内存：{flush}")
 #     else:
 #         print("debug:false")
 #         pass
@@ -214,9 +224,18 @@ async def _(event: GroupMessageEvent):
                 _fudu_list.clear(event.group_id)
                 await fudu.finish(rst)
                 flush = gc.collect()
-                print(f"已成功清理内存：{flush}")
+                logger.info(f"已成功清理内存：{flush}")
         else:
-            logger.warning("跳过复读...2")
+            if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE"):
+                with open(GroupListPath, "r", encoding="utf-8") as gl:
+                    GroupList = json.load(gl)
+                if f"{event.group_id}" in GroupList:
+                    if percent >= init and percent <= 0.45 and not _fudu_list.is_repeater(event.group_id):
+                        url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
+                        data = (await AsyncHttpx.get(url, timeout=5)).json()
+                        await fudu.finish(data["msg"])
+                        flush = gc.collect()
+                        logger.info(f"已成功清理内存：{flush}")
         # else:
         #     await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
         #     flush = gc.collect()
@@ -236,7 +255,7 @@ async def _(event: GroupMessageEvent):
                 _fudu_list.clear(event.group_id)
                 await fudu.finish(rst)
                 flush = gc.collect()
-                print(f"已成功清理内存：{flush}")
+                logger.info(f"已成功清理内存：{flush}")
         else:
             logger.warning(f"跳过复读...当前概率：{_fudu_list.size(event.group_id)}0%")
 
