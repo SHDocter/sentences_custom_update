@@ -305,7 +305,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         data = (await AsyncHttpx.get(url, timeout=5)).json()
         card = ""
         DatabaseDict = {"N": 0,"R": 0, "SR": 0, "SSR": 0}
-        up_user = ["晨于曦Asahi", "桑吉Sage"]
+        up_user = ["晨于曦Asahi"]
         up_percent = 35
         up_count = 0
         up_status = False
