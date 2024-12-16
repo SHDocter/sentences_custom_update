@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.2.2.198-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.2.3.198-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -263,6 +263,10 @@ up概率：[30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%]
 ### scu更新
 
 </summary>
+
+#### 1.2.3 | 2024.12.16
+
+- 现在上传、撤回、还原语录后会自动备份到七牛云
 
 #### 1.2.2 | 2024.11.13
 

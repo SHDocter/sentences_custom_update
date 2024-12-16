@@ -3,6 +3,7 @@ import re
 import json
 import fnmatch
 import datetime
+from qiniu import Auth, put_file, etag
 from nonebot import on_command
 from services.log import logger
 from configs.config import Config
@@ -28,9 +29,8 @@ usage：
         上传语录 黑名单 添加/删除 作者/别名 在黑名单的id将无法上传至语录，默认6级权限（注：指这个id无法被上传至语录，而不是这个id不能上传语录）
         上传语录 黑名单 查询
         查询语录
-        重载语录（自行搭建bot第一次使用需修改restart.sh中的redis密码，否则会报错，如果redis没有密码需删除密码那段参数）
-        还原语录 语录名称 | 该命令会将语录库还原到上传最后一条语录之前，默认会在还原后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
-        撤回语录 语录名称 撤回次数（如果没有撤回次数将撤回1次） | 默认会在撤回后自动重载语录，可修改bot的config配置是否启用，重载语录需求和手动重载一样
+        还原语录 语录名称 | 该命令会将语录库还原到上传最后一条语录之前
+        撤回语录 语录名称 撤回次数（如果没有撤回次数将撤回1次）
         提取语录 语录名称 语录作者（如果是不需要作者的语录该参数可以省略）| 支持字典
         
         语录内容不能有空格 | 图片不需要填写作者 | 回复作者不是必填的，默认为群名称
@@ -48,7 +48,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.2.2"
+__plugin_version__ = "1.2.3"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -220,6 +220,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     try:
         os.system(f"cp -rf {SentencesFile} {SentencesFile}.restore.1")
         os.system(f"cp -rf {SentencesFile}.restore {SentencesFile}")
+        backup()
     except:
         await RestoreSentence.finish("还原过程中出现未知错误！")
 
@@ -273,6 +274,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         SentencesList.pop()
     with open(SentencesFile, "w", encoding="utf-8") as f:
         json.dump(SentencesList, f, indent=4, ensure_ascii=False)
+    backup()
     await RevokeSentence.finish("撤回成功！")
     # except:
     #     await RevokeSentence.finish("撤回过程中出现未知错误！")
@@ -424,7 +426,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             await UploadSentence.finish("该语录不存在！")
 
         try:
-            Upload()
+            upload()
+            backup()
             result_id = result + f" id:{id}"
             await UploadSentence.send(result_id)
         except:
@@ -466,7 +469,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         else:
             await UploadSentence.finish("该语录不存在！")
 
-        Upload()
+        upload()
+        backup()
         result_id = result + f" id:{id}"
         await UploadSentence.send(result_id)
 
@@ -510,7 +514,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         f" 已成功上传图片"
     )
 
-def Upload():
+def upload():
     global id
     path = "/var/www/ss-ana/data/" # 语录的路径
     SentencesFile = "" # 留空
@@ -541,7 +545,7 @@ def Upload():
         item_dict = {
     "id": f"{id}",
     "msg": f"{sentence}",
-    "author": "桑吉Sage", # 填入作者，通过此方式写入双引号
+    "author": "桑吉Sage",
     "time": f"{time}"
 }
     elif SentenceName in ["羽月","羽月语录"]:
@@ -576,3 +580,37 @@ def Upload():
 
     with open(SentencesFile, 'w', encoding="utf-8") as JsonFile:
         json.dump(content, JsonFile, indent=4, ensure_ascii=False) # 打开并写入json中，保持4格缩进并避免中文乱码
+
+def backup(): # 云备份
+    qiniu_path = "custom_plugins/scu_bot/key.json" # 云备份配置文件
+
+    if not os.path.exists(qiniu_path):
+        logger.error("未找到云备份配置文件！")
+    else:
+        with open(qiniu_path, 'r', encoding="utf-8") as f:
+            data = json.load(f)
+
+        #需要填写你的 Access Key 和 Secret Key
+        access_key = data["access_key"]
+        secret_key = data["secret_key"]
+
+        #构建鉴权对象
+        q = Auth(access_key, secret_key)
+
+        #要上传的空间
+        bucket_name = data["bucket_name"]
+
+        #上传后保存的文件名
+        key = data["path"]
+
+        #生成上传 Token，可以指定过期时间等
+        token = q.upload_token(bucket_name, key, 3600)
+
+        #要上传文件的本地路径
+        localfile = data["localfile"]
+
+        ret, info = put_file(token, key, localfile, version='v1') 
+        print(info)
+        assert ret['key'] == key
+        assert ret['hash'] == etag(localfile)
+        logger.info("云备份成功！")
