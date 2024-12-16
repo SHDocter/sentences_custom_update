@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.2.2.194-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.2.2.198-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -18,7 +18,13 @@ bot插件扩展，用于快速更新语录库
 
 ## ChangeLog
 
+<details>
+
+<summary>
+
 ### 语录库更新
+
+</summary>
 
 - 发送语录支持图片，通过random函数随机抽取
 
@@ -225,6 +231,39 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 
 注：该功能可开关且需要配置 `GroupList` ，不会在所有群启用
 
+- `v.1.2.2.194` 补充更新：会触发随机回复楠桐语录的群只有初次判定时有15%的概率会复读，如果复读超过两条且被跳过将不再复读，并会在跳过后获得随机回复楠桐语录的概率up
+
+up概率：[30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%]
+
+注：如果不在群列表将会进入复读up判定而不是语录up判定，等同于v1.2.2.194
+
+- 获取网易云音乐直链功能改名
+
+- 跳过复读的log从warning改为info
+
+- 修复触发回复语录后复读仍在计数的问题
+
+- 新增每个群独立的随机回复语录开关，现在如果不满足以下三个条件将进入复读判定
+
+判定条件：
+1、bot插件配置文件中“I_THINK_RANDOM_MODE” = True
+
+2、群号码存在于"group_list.json"中
+
+3、在"random_mode.json"中，"group_id" = True
+
+注：当群号码存在于"group_list.json"但不存在于"random_mode.json"中时，该群第一次触发复读的时候将自动写入并默认启用随机回复楠桐语录模式
+
+</details>
+
+<details>
+
+<summary>
+
+### scu更新
+
+</summary>
+
 #### 1.2.2 | 2024.11.13
 
 - 修复撤回语录后没有提示的问题
@@ -408,3 +447,5 @@ n抽触发正则：([0-9]+抽|零抽|单抽|抽)
 - 修复语录不存在时只会后台报错不会提示的问题
 
 #### 1.0.0 | 2023.7.6
+
+</details>

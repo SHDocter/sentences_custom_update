@@ -1,4 +1,4 @@
-from nonebot import on_keyword, on_message, on_notice, require, get_driver
+from nonebot import on_keyword, on_message, on_notice, require, get_driver, on_command
 from services.log import logger
 from nonebot.adapters.onebot.v11 import MessageEvent
 from utils.message_builder import image
@@ -9,7 +9,8 @@ from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from utils.utils import get_message_text, get_message_img
 from nonebot.adapters.onebot.v11.permission import GROUP
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Bot, Event, GroupRecallNoticeEvent, FriendRecallNoticeEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Bot, Event, GroupRecallNoticeEvent, FriendRecallNoticeEvent, Message, MessageEvent
+from nonebot.params import CommandArg
 from pathlib import Path
 import os
 import gc
@@ -93,12 +94,14 @@ _fudu_list = Fudu()
 
 send_img = on_message(permission=GROUP, priority=999)
 fudu = on_message(permission=GROUP, priority=999)
+random_mode = on_command("彩蛋", aliases={}, priority=5, block=True)
 
 ImagePath = IMAGE_PATH / "scu/easter_egg"
 ResourcesPath = Path() / "custom_plugins" / "i_think_is_ok"
 ImgPath = ResourcesPath / "img"
 GroupListPath = ResourcesPath / "group_list.json"
 UserListPath = ResourcesPath / "user_list.json"
+RandomModePath = ResourcesPath / "random_mode.json"
 
 if not os.path.exists(ImagePath):
     os.mkdir(ImagePath)
@@ -117,6 +120,13 @@ if not UserListPath.exists():
         "example": "example"
 }
         json.dump(UserList, ul, ensure_ascii=False, indent=4)
+
+if not RandomModePath.exists():
+    with open(RandomModePath, "w", encoding="utf-8") as rm:
+        ModeList = {
+            "group_id": True
+        }
+        json.dump(ModeList, rm, ensure_ascii=False, indent=4)
 
 @send_img.handle()
 async def _(event: MessageEvent):
@@ -190,6 +200,14 @@ async def _(event: MessageEvent):
 async def _(event: GroupMessageEvent):
     init = 0.15
     percent = random.random()
+    with open(GroupListPath, "r", encoding="utf-8") as gl:
+        GroupList = json.load(gl)
+    with open(RandomModePath, "r", encoding="utf-8") as rm:
+        random_mode_list = json.load(rm)
+    if f"{event.group_id}" in GroupList and f"{event.group_id}" not in random_mode_list:
+        random_mode_list[str(event.group_id)] = True
+        with open(RandomModePath, "w+", encoding="utf-8") as rm:
+            json.dump(random_mode_list, rm, ensure_ascii=False, indent=4)
     if event.is_tome():
         return
     img = get_message_img(event.json())
@@ -209,7 +227,6 @@ async def _(event: GroupMessageEvent):
         _fudu_list.clear(event.group_id)
         _fudu_list.append(event.group_id, add_msg)
     if _fudu_list.size(event.group_id) == 2:
-        # _fudu_list.clear(event.group_id)
         if percent <= init and not _fudu_list.is_repeater(event.group_id):
             _fudu_list.set_repeater(event.group_id)
             if img and msg:
@@ -225,35 +242,34 @@ async def _(event: GroupMessageEvent):
                 await fudu.finish(rst)
                 flush = gc.collect()
                 logger.info(f"已成功清理内存：{flush}")
+        elif percent >= init and percent <= 0.45 and not _fudu_list.is_repeater(event.group_id):
+            if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE") and f"{event.group_id}" in GroupList and random_mode_list[str(event.group_id)] and not _fudu_list.is_repeater(event.group_id):
+                _fudu_list.set_repeater(event.group_id)
+                url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
+                data = (await AsyncHttpx.get(url, timeout=5)).json()
+                _fudu_list.clear(event.group_id)
+                await fudu.finish(data["msg"])
+                flush = gc.collect()
+                logger.info(f"已成功清理内存：{flush}")
+            else:
+                logger.info("不符合条件，跳过复读...")
         else:
-            if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE"):
-                with open(GroupListPath, "r", encoding="utf-8") as gl:
-                    GroupList = json.load(gl)
-                if f"{event.group_id}" in GroupList:
-                    if percent >= init and percent <= 0.45 and not _fudu_list.is_repeater(event.group_id):
-                        url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
-                        data = (await AsyncHttpx.get(url, timeout=5)).json()
-                        await fudu.finish(data["msg"])
-                        flush = gc.collect()
-                        logger.info(f"已成功清理内存：{flush}")
+            logger.info("跳过复读...")
         # else:
         #     await fudu.finish(image("scu/easter_egg/" + "fudu.jpg"))
         #     flush = gc.collect()
         #     print(f"已成功清理内存：{flush}")
     if _fudu_list.size(event.group_id) > 2:
         if percent <= float(f"0.{_fudu_list.size(event.group_id)}") and not _fudu_list.is_repeater(event.group_id):
-            if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE"):
-                with open(GroupListPath, "r", encoding="utf-8") as gl:
-                    GroupList = json.load(gl)
-                if f"{event.group_id}" in GroupList:
-                    if percent >= init and percent <= 0.45 and not _fudu_list.is_repeater(event.group_id):
-                        url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
-                        data = (await AsyncHttpx.get(url, timeout=5)).json()
-                        await fudu.finish(data["msg"])
-                        flush = gc.collect()
-                        logger.info(f"已成功清理内存：{flush}")
+            _fudu_list.set_repeater(event.group_id)
+            if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE") and f"{event.group_id}" in GroupList and random_mode_list[str(event.group_id)]:
+                url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
+                data = (await AsyncHttpx.get(url, timeout=5)).json()
+                _fudu_list.clear(event.group_id)
+                await fudu.finish(data["msg"])
+                flush = gc.collect()
+                logger.info(f"已成功清理内存：{flush}")
             else:
-                _fudu_list.set_repeater(event.group_id)
                 if img and msg:
                     rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
                 elif img:
@@ -268,7 +284,7 @@ async def _(event: GroupMessageEvent):
                     flush = gc.collect()
                     logger.info(f"已成功清理内存：{flush}")
         else:
-            logger.warning(f"跳过复读...当前概率：{_fudu_list.size(event.group_id)}0%")
+            logger.info(f"跳过复读...当前概率：{_fudu_list.size(event.group_id)}0%")
 
 async def get_fudu_img_hash(url, group_id):
     try:
@@ -287,6 +303,23 @@ async def handle_rule(bot: Bot, event: Event) -> bool:
     if isinstance(event, GroupRecallNoticeEvent) or isinstance(event, FriendRecallNoticeEvent):
         return True
     return False
+
+@random_mode.handle()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    with open(RandomModePath, "r", encoding="utf-8") as rm:
+        random_mode_list = json.load(rm)
+    msg = arg.extract_plain_text().strip().split()
+    if msg[0] == "随机模式":
+        if msg[1] == "开启":
+            random_mode_list[str(event.group_id)] = True
+            with open(RandomModePath, "w+", encoding="utf-8") as rm:
+                json.dump(random_mode_list, rm, ensure_ascii=False, indent=4)
+            await random_mode.finish("随机回复楠桐语录已开启")
+        if msg[1] == "关闭":
+            random_mode_list[str(event.group_id)] = False
+            with open(RandomModePath, "w+", encoding="utf-8") as rm:
+                json.dump(random_mode_list, rm, ensure_ascii=False, indent=4)
+            await random_mode.finish("随机回复楠桐语录已关闭")
 
 # message_back = on_notice(rule=handle_rule, priority=50)
 
