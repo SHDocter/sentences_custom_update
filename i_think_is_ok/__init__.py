@@ -242,20 +242,31 @@ async def _(event: GroupMessageEvent):
         #     print(f"已成功清理内存：{flush}")
     if _fudu_list.size(event.group_id) > 2:
         if percent <= float(f"0.{_fudu_list.size(event.group_id)}") and not _fudu_list.is_repeater(event.group_id):
-            _fudu_list.set_repeater(event.group_id)
-            if img and msg:
-                rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
-            elif img:
-                rst = image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
-            elif msg:
-                rst = msg
+            if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE"):
+                with open(GroupListPath, "r", encoding="utf-8") as gl:
+                    GroupList = json.load(gl)
+                if f"{event.group_id}" in GroupList:
+                    if percent >= init and percent <= 0.45 and not _fudu_list.is_repeater(event.group_id):
+                        url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
+                        data = (await AsyncHttpx.get(url, timeout=5)).json()
+                        await fudu.finish(data["msg"])
+                        flush = gc.collect()
+                        logger.info(f"已成功清理内存：{flush}")
             else:
-                rst = ""
-            if rst:
-                _fudu_list.clear(event.group_id)
-                await fudu.finish(rst)
-                flush = gc.collect()
-                logger.info(f"已成功清理内存：{flush}")
+                _fudu_list.set_repeater(event.group_id)
+                if img and msg:
+                    rst = msg + image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+                elif img:
+                    rst = image(TEMP_PATH / f"fudu_{event.group_id}.jpg")
+                elif msg:
+                    rst = msg
+                else:
+                    rst = ""
+                if rst:
+                    _fudu_list.clear(event.group_id)
+                    await fudu.finish(rst)
+                    flush = gc.collect()
+                    logger.info(f"已成功清理内存：{flush}")
         else:
             logger.warning(f"跳过复读...当前概率：{_fudu_list.size(event.group_id)}0%")
 
