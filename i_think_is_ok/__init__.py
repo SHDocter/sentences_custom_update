@@ -102,6 +102,7 @@ ImgPath = ResourcesPath / "img"
 GroupListPath = ResourcesPath / "group_list.json"
 UserListPath = ResourcesPath / "user_list.json"
 RandomModePath = ResourcesPath / "random_mode.json"
+PercentPath = ResourcesPath / "percent.json"
 
 if not os.path.exists(ImagePath):
     os.mkdir(ImagePath)
@@ -219,13 +220,18 @@ async def _(event: GroupMessageEvent):
     else:
         img_hash = ""
     add_msg = msg + "|-|" + img_hash
+
     if _fudu_list.size(event.group_id) == 0:
         _fudu_list.append(event.group_id, add_msg)
     elif _fudu_list.check(event.group_id, add_msg):
         _fudu_list.append(event.group_id, add_msg)
     else:
+        if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE") and f"{event.group_id}" in GroupList and random_mode_list[str(event.group_id)]:
+            save_percent(event.group_id)
+
         _fudu_list.clear(event.group_id)
         _fudu_list.append(event.group_id, add_msg)
+
     if _fudu_list.size(event.group_id) == 2:
         if percent <= init and not _fudu_list.is_repeater(event.group_id):
             _fudu_list.set_repeater(event.group_id)
@@ -260,7 +266,11 @@ async def _(event: GroupMessageEvent):
         #     flush = gc.collect()
         #     print(f"已成功清理内存：{flush}")
     if _fudu_list.size(event.group_id) > 2:
-        if percent <= 0.1 + float(f"0.{_fudu_list.size(event.group_id)}") and not _fudu_list.is_repeater(event.group_id):
+        if load_percent(event.group_id) != "":
+            up_percent = float(load_percent(event.group_id))
+        else:
+            up_percent = float(f"0.{_fudu_list.size(event.group_id)}")
+        if percent <= 0.1 + up_percent and not _fudu_list.is_repeater(event.group_id):
             _fudu_list.set_repeater(event.group_id)
             if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE") and f"{event.group_id}" in GroupList and random_mode_list[str(event.group_id)]:
                 url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
@@ -303,6 +313,26 @@ async def handle_rule(bot: Bot, event: Event) -> bool:
     if isinstance(event, GroupRecallNoticeEvent) or isinstance(event, FriendRecallNoticeEvent):
         return True
     return False
+
+def save_percent(group_id):
+    if os.path.exists(PercentPath):
+        with open(PercentPath, "r", encoding="utf-8") as f:
+            save_percent = json.load(f)
+    else:
+        save_percent = {}
+
+    with open(PercentPath, "w+", encoding="utf-8") as f:
+        save_percent[str(group_id)] = float(_fudu_list.size(group_id)) / 10
+        json.dump(save_percent, f, ensure_ascii=False, indent=4)
+
+def load_percent(group_id):
+    if os.path.exists(PercentPath):
+        with open(PercentPath, "r", encoding="utf-8") as f:
+            load_percent = json.load(f)
+    else:
+        load_percent = {}
+
+    return load_percent[str(group_id)]
 
 @random_mode.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
