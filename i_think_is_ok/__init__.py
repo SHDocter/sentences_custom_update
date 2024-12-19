@@ -260,7 +260,7 @@ async def _(event: GroupMessageEvent):
         #     flush = gc.collect()
         #     print(f"已成功清理内存：{flush}")
     if _fudu_list.size(event.group_id) > 2:
-        if percent <= float(f"0.{_fudu_list.size(event.group_id)}") and not _fudu_list.is_repeater(event.group_id):
+        if percent <= 0.1 + float(f"0.{_fudu_list.size(event.group_id)}") and not _fudu_list.is_repeater(event.group_id):
             _fudu_list.set_repeater(event.group_id)
             if Config.get_config("i_think_is_ok", "I_THINK_RANDOM_MODE") and f"{event.group_id}" in GroupList and random_mode_list[str(event.group_id)]:
                 url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
