@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.2.3.198-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.2.3.201-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -257,6 +257,16 @@ up概率：[30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%]
 - 修复回复语录在第一次概率up后和基础概率相同的问题，现在概率up将从40%开始依次递增10%
 
 - 回复语录概率up新增继承功能，如果没有触发语录概率将会继承至下次复读
+
+- 画饼功能重做，具体内容见下方
+
+    - 现在保存数据的方式为列表里嵌套字典
+
+    - 开炉现在会显示正确的序号
+
+    - 出炉不再通过回复的方式而是通过发送序号删除对应的键值对
+
+    - 重写发送内容的格式
 
 </details>
 
