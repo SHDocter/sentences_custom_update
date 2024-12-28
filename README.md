@@ -1,6 +1,6 @@
 # Sentences Custom Update
 
-![version](https://img.shields.io/badge/Version-1.2.3.201-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
+![version](https://img.shields.io/badge/Version-1.2.3.202-cyan) ![python](https://img.shields.io/badge/Python-3.8.10-blue)
 
 bot插件扩展，用于快速更新语录库
 
@@ -267,6 +267,12 @@ up概率：[30%, 40%, 50%, 60%, 70%, 80%, 90%, 100%]
     - 出炉不再通过回复的方式而是通过发送序号删除对应的键值对
 
     - 重写发送内容的格式
+
+- 楠桐语录移除统计功能
+
+- 楠桐语录新增简易版年度报告，触发：楠桐语录 年度报告
+
+注：年度报告截止至2025.1.10，超过时间后无法查询
 
 </details>
 

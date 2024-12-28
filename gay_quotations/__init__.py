@@ -657,44 +657,80 @@ SSR：{ssr} | {ssr_all}条
         # elif UpPoolRegex:
         #     while True:
         #         break
-        elif SentenceCheck in ["统计"]:
-            if len(msg) >= 2:
-                RegexNameCount = 0
-                RegexAuthorCount = 0
-                name = msg[1]
-                for i in NameRegexList:
-                    NameRegex = re.search(name, i)
-                    if NameRegex:
-                        RegexNameCount += 1
-                for i in List:
-                    for key,value in UserDict.items():
-                        if key == name:
-                            name = value
-                    AuthorRegex = re.search(name, i)
-                    if AuthorRegex:
-                        RegexAuthorCount += 1
-                RegexAllCount = int(RegexNameCount) + int(RegexAuthorCount)
-                RegexPercent = float(int(RegexAllCount / len(content) * 10000) / 100)
-                await quotations.finish(f"""目前楠桐语录中有{RegexNameCount}条语录与{msg[1]}有关，有{RegexAuthorCount}条语录作者包含{name}，合计{RegexAllCount}条，占比{RegexPercent}%。""")
-            result = db.count(str(event.user_id))
-            n, r, sr, ssr = 0, 0, 0, 0
-            if result != []:
-                result = result[0]
-                n = result["N"]
-                r = result["R"]
-                sr = result["SR"]
-                ssr = result["SSR"]
+        elif SentenceCheck in ["年度报告"]:
+            # if len(msg) >= 2:
+            #     RegexNameCount = 0
+            #     RegexAuthorCount = 0
+            #     name = msg[1]
+            #     for i in NameRegexList:
+            #         NameRegex = re.search(name, i)
+            #         if NameRegex:
+            #             RegexNameCount += 1
+            #     for i in List:
+            #         for key,value in UserDict.items():
+            #             if key == name:
+            #                 name = value
+            #         AuthorRegex = re.search(name, i)
+            #         if AuthorRegex:
+            #             RegexAuthorCount += 1
+            #     RegexAllCount = int(RegexNameCount) + int(RegexAuthorCount)
+            #     RegexPercent = float(int(RegexAllCount / len(content) * 10000) / 100)
+            #     await quotations.finish(f"""目前楠桐语录中有{RegexAuthorCount}条语录作者包含{name}，合计{RegexAllCount}条，占比{RegexPercent}%。""")
+            if datetime.datetime.now() < datetime.datetime(2025, 1, 10):
+                result = db.count(str(event.user_id))
+                n, r, sr, ssr = 0, 0, 0, 0
+                if result != []:
+                    result = result[0]
+                    n = result["N"]
+                    r = result["R"]
+                    sr = result["SR"]
+                    ssr = result["SSR"]
 
-            CountJson = open(CardCountPath, 'r')
-            c = CountJson.read()
-            CountJson.close()
-            CountList = json.loads(c)
-            CardDict = {}
-            DrawCount = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
+                CountJson = open(CardCountPath, 'r')
+                c = CountJson.read()
+                CountJson.close()
+                CountList = json.loads(c)
+                CardDict = {}
+                DrawCountCheck = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
+                for CardKey,CardValue in CountList.items():
+                    CardValue = f"{int(CardValue / DrawCountCheck * 10000) / 100}"
+                    CardDict[CardKey] = f"{CardValue}%"
+                DrawCount = CountList["n"] + CountList["r"] + CountList["sr"] + CountList["ssr"]
+                DrawPercent = str(CardDict).replace("'", "").replace(", ", " | ").replace("{", "").replace("}", "")
+                CardCount = str(CountList).replace("{", "").replace("}", "").replace("'", "").replace(",", "")
 
-            await quotations.finish(f"""从2023年11月1日21点40分开始，您一共抽取了{n + r + sr + ssr}条语录
-其中N卡{n}张，R卡{r}张，SR卡{sr}张，SSR卡{ssr}张""")
+#             await quotations.finish(f"""从2023年11月1日21点40分开始，您一共抽取了{n + r + sr + ssr}条语录
+# 其中N卡{n}张，R卡{r}张，SR卡{sr}张，SSR卡{ssr}张""")
+                log_size = 0
+                lines = 0
+                for i in os.listdir("log"):
+                    log_size += os.path.getsize(f"log/{i}")
+                    for _ in open(f"log/{i}"):
+                        lines += 1
+                log_size = format(log_size / 1000 / 1024, ".2f")
 
+                result = f"""截止到2024.12.28，scu推送了240次更新
+排除scu本体，语录以及其他功能迭代了202个版本
+
+目前楠桐语录已经收录了{str(len(content))}条语录
+其中N卡{str(n_all)}张，R卡{str(r_all)}张，SR卡{str(sr_all)}张，SSR卡{str(ssr_all)}张
+
+楠桐语录top5：{str(sorted(Dict.items(), key=lambda x:x[1], reverse=True)[0:5]).replace("[('", "").replace("), ('", " | ").replace("', ", "：").replace(")]", "")}
+
+从2024.3.11至今，Nya同学已保存了约{log_size}MB、{lines}行日志
+
+今年群友累计抽卡：{CardCount}
+今年群友累计概率：{DrawPercent}"""
+
+                if n + r + sr + ssr != 0:
+                    result = result + f"\n\n你今年一共抽取了{n + r + sr + ssr}条语录\n其中N卡{n}张，R卡{r}张，SR卡{sr}张，SSR卡{ssr}张\n\n很遗憾，Nya同学目前还不知道你的喜好是谁..."
+                    await quotations.finish(result)
+                else:
+                    result = result + "\n\n你今年貌似一条语录都没抽过，是小晨（划掉）群友不够楠桐吸引不了你吗？"
+                    await quotations.finish(result)
+
+            else:
+                await quotations.finish("现在不是查看年度报告的时候哦，请等待下次开放查询！")
         else:
             await quotations.finish("参数有误,code:10404，请使用'帮助楠桐语录'查看帮助...")
             flush = gc.collect()
