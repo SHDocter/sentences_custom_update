@@ -20,14 +20,14 @@ __plugin_usage__ = """
 usage：
     上传语录
     指令：
-        上传语录 语录名称 语录内容
+        上传语录/scu 语录名称 语录内容
         [回复] 上传语录 语录名称 语录作者（如不填写作者将默认为群名称）
-        上传语录 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
+        上传语录/scu 语录名称 语录内容 语录作者（目前仅限楠桐语录和语录合集需要填写作者）
         上传图片 语录名称 [图片] | [回复] 上传图片 语录名称
-        上传语录 字典 作者（保存在语录中的名字） 别名 该命令将会为指定的作者添加一个别名 | [回复] 上传语录 字典 作者 该命令将会把回复的人的群id作为别名
-        上传语录 字典 查询
-        上传语录 黑名单 添加/删除 作者/别名 在黑名单的id将无法上传至语录，默认6级权限（注：指这个id无法被上传至语录，而不是这个id不能上传语录）
-        上传语录 黑名单 查询
+        上传语录/scu 字典 作者（保存在语录中的名字） 别名 该命令将会为指定的作者添加一个别名 | [回复] 上传语录 字典 作者 该命令将会把回复的人的群id作为别名
+        上传语录/scu 字典 查询
+        上传语录/scu 黑名单 添加/删除 作者/别名 在黑名单的id将无法上传至语录，默认6级权限（注：指这个id无法被上传至语录，而不是这个id不能上传语录）
+        上传语录/scu 黑名单 查询
         查询语录
         还原语录 语录名称 | 该命令会将语录库还原到上传最后一条语录之前
         撤回语录 语录名称 撤回次数（如果没有撤回次数将撤回1次）
@@ -40,6 +40,7 @@ usage：
         6级权限需要管理员手动授权
         
         例：上传语录 桑吉/桑吉语录 人家45
+        例：scu 桑吉/桑吉语录 人家45
         例：上传语录 楠桐/楠桐语录 我是楠桐 晨于曦Asahi
         例：[回复] 上传语录 楠桐 晨于曦Asahi
         例：上传图片 楠桐 [图片] | [回复] 上传图片 楠桐
@@ -48,13 +49,13 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.2.3"
+__plugin_version__ = "1.2.4"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["上传语录","上传图片","查询语录"],
+    "cmd": ["上传语录","上传图片","查询语录","scu"],
 }
 __plugin_type__ = ("语录", 1)
 
@@ -92,7 +93,7 @@ BlackListPath = ScuDataPath / "blacklist.json"
 ScuPath = "/home/zhenxun_bot-main/resources/image/scu/"
 
 up_img = on_command("上传图片", aliases={"上传图片"}, priority=5, block=True)
-UploadSentence = on_command("上传语录", aliases={"上传语录"}, priority=5, block=True)
+UploadSentence = on_command("上传语录", aliases={"上传语录", "scu"}, priority=5, block=True)
 CheckSentences = on_command("查询语录", aliases={"查询语录"}, priority=5, block=True)
 RestoreSentence = on_command("还原语录", aliases={"还原语录"}, priority=5, block=True)
 RevokeSentence = on_command("撤回语录", aliases={"撤回语录"}, priority=5, block=True)
@@ -485,14 +486,14 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     ImgName = msg[0]
     if ImgName in ["楠桐","楠桐语录"]:
         ScuImgPath = ScuPath + "gay/"
-    elif ImgName in ["桑吉","桑吉语录"]:
-        ScuImgPath = ScuPath + "sage/"
-    elif ImgName in ["羽月","羽月语录"]:
-        ScuImgPath = ScuPath + "chii/"
-    elif ImgName in ["小晨","小晨语录"]:
-        ScuImgPath = ScuPath + "asahi/"
-    elif ImgName in ["语录","语录合集"]:
-        ScuImgPath = ScuPath + "other/"
+    # elif ImgName in ["桑吉","桑吉语录"]:
+    #     ScuImgPath = ScuPath + "sage/"
+    # elif ImgName in ["羽月","羽月语录"]:
+    #     ScuImgPath = ScuPath + "chii/"
+    # elif ImgName in ["小晨","小晨语录"]:
+    #     ScuImgPath = ScuPath + "asahi/"
+    # elif ImgName in ["语录","语录合集"]:
+    #     ScuImgPath = ScuPath + "other/"
     else:
         await up_img.finish("该语录不存在！")
     if not event.reply:
@@ -519,63 +520,61 @@ def upload():
     path = "/var/www/ss-ana/data/" # 语录的路径
     SentencesFile = "" # 留空
 
-    if SentenceName in ["桑吉","桑吉语录"]:
-        SentencesFile = path + "sage.json" # 语录文件
-    elif SentenceName in ["羽月","羽月语录"]:
-        SentencesFile = path + "chii.json"
-    elif SentenceName in ["楠桐","楠桐语录"]:
+    # if SentenceName in ["桑吉","桑吉语录"]:
+    #     SentencesFile = path + "sage.json" # 语录文件
+    # elif SentenceName in ["羽月","羽月语录"]:
+    #     SentencesFile = path + "chii.json"
+    if SentenceName in ["楠桐","楠桐语录"]:
         SentencesFile = path + "gay.json"
-    elif SentenceName in ["小晨","小晨语录"]:
-        SentencesFile = path + "asahi.json"
-    elif SentenceName in ["语录","语录合集"]:
-        SentencesFile = path + "collection.json"
+    # elif SentenceName in ["小晨","小晨语录"]:
+    #     SentencesFile = path + "asahi.json"
+    # elif SentenceName in ["语录","语录合集"]:
+    #     SentencesFile = path + "collection.json"
     else:
         UploadSentence.finish("该语录不存在！")
 
     #os.system(f"chmod -R 666 {path}")
     os.system(f"cp -rf {SentencesFile} {SentencesFile}.restore")
     item_dict = "" # 留空
-    f = open(SentencesFile, 'r', encoding="utf-8") # 将语言文件写入缓存
-    text = f.read() # 读取语言
-    f.close() # 关闭语言文件
-    content = json.loads(text) # 转为List，List中为字典
+    with open(SentencesFile, 'r', encoding="utf-8") as f:
+        content = json.loads(f) # 转为List，List中为字典
     id = len(content) + 1 # 获取字典位数并加1的方式自动更新id
     time = str(datetime.datetime.now().strftime('%Y年%m月%d日 %H:%M:%S'))
-    if SentenceName in ["桑吉","桑吉语录"]:
-        item_dict = {
-    "id": f"{id}",
-    "msg": f"{sentence}",
-    "author": "桑吉Sage",
-    "time": f"{time}"
-}
-    elif SentenceName in ["羽月","羽月语录"]:
-        item_dict = {
-    "id": f"{id}",
-    "msg": f"{sentence}",
-    "author": "羽月ちい",
-    "time": f"{time}"
-}
-    elif SentenceName in ["楠桐","楠桐语录"]:
-        item_dict = {
-    "id": f"{id}",
-    "msg": f"{sentence}",
-    "author": f"{author}", # 填入作者，通过此方式写入双引号
-    "time": f"{time}"
-}
-    elif SentenceName in ["小晨","小晨语录"]:
-        item_dict = {
-    "id": f"{id}",
-    "msg": f"{sentence}",
-    "author": "晨于曦Asahi",
-    "time": f"{time}"
-}
-    elif SentenceName in ["语录","语录合集"]:
+#     if SentenceName in ["桑吉","桑吉语录"]:
+#         item_dict = {
+#     "id": f"{id}",
+#     "msg": f"{sentence}",
+#     "author": "桑吉Sage",
+#     "time": f"{time}"
+# }
+#     elif SentenceName in ["羽月","羽月语录"]:
+#         item_dict = {
+#     "id": f"{id}",
+#     "msg": f"{sentence}",
+#     "author": "羽月ちい",
+#     "time": f"{time}"
+# }
+    if SentenceName in ["楠桐","楠桐语录"]:
         item_dict = {
     "id": f"{id}",
     "msg": f"{sentence}",
     "author": f"{author}", # 填入作者，通过此方式写入双引号
     "time": f"{time}"
 }
+#     elif SentenceName in ["小晨","小晨语录"]:
+#         item_dict = {
+#     "id": f"{id}",
+#     "msg": f"{sentence}",
+#     "author": "晨于曦Asahi",
+#     "time": f"{time}"
+# }
+#     elif SentenceName in ["语录","语录合集"]:
+#         item_dict = {
+#     "id": f"{id}",
+#     "msg": f"{sentence}",
+#     "author": f"{author}", # 填入作者，通过此方式写入双引号
+#     "time": f"{time}"
+# }
     content.append(item_dict) # 将字典追加入列表
 
     with open(SentencesFile, 'w', encoding="utf-8") as JsonFile:
