@@ -1,9 +1,3 @@
-'''
-Author: Nya-WSL
-Copyright © 2023 by Nya-WSL All Rights Reserved. 
-Date: 2023-11-01 12:24:49
-LastEditors: 狐日泽
-'''
 from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, GroupMessageEvent
@@ -310,19 +304,19 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         up_count = 0
         up_status = False
         if data["author"] not in up_user:
-            print(f"未抽中{up_user}，判定概率：{up_percent}%，正在判定...")
+            logger.info(f"未抽中{up_user}，判定概率：{up_percent}%，正在判定...")
             if random.randint(1, 100) <= int(up_percent):
                 await quotations.send(f"up判定成功，将随机抽取一张{up_user}...")
                 up_status = True
                 data = (await AsyncHttpx.get(url, timeout=5)).json()
                 while data["author"] not in up_user:
-                    print(f"未抽中{up_user}，继续抽取...")
+                    logger.info(f"未抽中{up_user}，继续抽取...")
                     up_count += 1
                     data = (await AsyncHttpx.get(url, timeout=5)).json()
                 else:
-                    print("抽取成功，内容：" + str({data["msg"]}))
+                    logger.info("抽取成功，内容：" + str({data["msg"]}))
             else:
-                print(f"判定失败！将跳过抽取{up_user}...")
+                logger.info(f"判定失败！将跳过抽取{up_user}...")
         if data["author"] in n:
             card = " | N卡"
             CountList["n"] += 1
@@ -353,9 +347,15 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 card = " | UR卡"
         result = ""
         if up_status:
-            result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card} | 抽取次数：{up_count}'
+            if data["uploader"] == None:
+                result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card} | 抽取次数：{up_count}'
+            else:
+                result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card} | 抽取次数：{up_count}, 是这个b...站用户集的：{data["uploader"]}'
         else:
-            result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card}'
+            if data["uploader"] == None:
+                result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card}'
+            else:
+                result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]}{card}, 是这个b...站用户集的：{data["uploader"]}'
         await quotations.send(result)
         flush = gc.collect()
     elif len(msg) >= 1:
@@ -399,7 +399,10 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 result = f"抽了{DrawAuthorCount}次都没抽到，你真是个非酋"
                 await quotations.send(result)
             else:
-                result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]} | 抽取次数：{DrawAuthorCount}'
+                if data["uploader"] == None:
+                    result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]} | 抽取次数：{DrawAuthorCount}'
+                else:
+                    result = f'〔g{data["id"]}〕 {data["msg"]} | {data["author"]} | 抽取次数：{DrawAuthorCount}, 是这个b...站用户集的：{data["uploader"]}'
             await quotations.send(result)
             flush = gc.collect()
         elif re.match(r"(限定|指定)([0-9]+抽|零抽|单抽|抽|一井|抽卡)", SentenceCheck):

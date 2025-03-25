@@ -49,7 +49,7 @@ usage：
 """.strip()
 __plugin_des__ = "上传语录"
 __plugin_cmd__ = ["上传语录"]
-__plugin_version__ = "1.2.4"
+__plugin_version__ = "1.2.5"
 __plugin_author__ = "Nya-WSL"
 __plugin_settings__ = {
     "level": 5,
@@ -281,16 +281,23 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     #     await RevokeSentence.finish("撤回过程中出现未知错误！")
 
 @UploadSentence.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     global SentenceName
     global sentence
     global author
+    global uploader
     with open(UserDictPath, "r", encoding="utf-8") as ud:
         UserDict = json.load(ud)
     with open(BlackListPath, "r", encoding="utf-8") as blp:
         BlackList = json.load(blp)
     msg = arg.extract_plain_text().strip().split()
     SentenceName = msg[0]
+    member_info = await bot.get_group_member_info(
+            group_id=event.group_id,
+            user_id=event.user_id,
+            no_cache=True
+        )
+    uploader = member_info.get('nickname', '')
 
     if SentenceName in ["黑名单"]:
         if msg[1] == "查询":
@@ -371,7 +378,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 t.write(str(count))
         if int(count) >= 2:
             result = image("scu/1.jpg")
-            print("debug")
             await UploadSentence.send(result)
             os.remove("custom_plugins/scu_bot/count.txt")
             os.remove("custom_plugins/scu_bot/user.json")
@@ -537,7 +543,7 @@ def upload():
     os.system(f"cp -rf {SentencesFile} {SentencesFile}.restore")
     item_dict = "" # 留空
     with open(SentencesFile, 'r', encoding="utf-8") as f:
-        content = json.loads(f) # 转为List，List中为字典
+        content = json.load(f) # 转为List，List中为字典
     id = len(content) + 1 # 获取字典位数并加1的方式自动更新id
     time = str(datetime.datetime.now().strftime('%Y年%m月%d日 %H:%M:%S'))
 #     if SentenceName in ["桑吉","桑吉语录"]:
@@ -559,6 +565,7 @@ def upload():
     "id": f"{id}",
     "msg": f"{sentence}",
     "author": f"{author}", # 填入作者，通过此方式写入双引号
+    "uploader": f"{uploader}",
     "time": f"{time}"
 }
 #     elif SentenceName in ["小晨","小晨语录"]:
@@ -586,30 +593,34 @@ def backup(): # 云备份
     if not os.path.exists(qiniu_path):
         logger.error("未找到云备份配置文件！")
     else:
-        with open(qiniu_path, 'r', encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            with open(qiniu_path, 'r', encoding="utf-8") as f:
+                data = json.load(f)
 
-        #需要填写你的 Access Key 和 Secret Key
-        access_key = data["access_key"]
-        secret_key = data["secret_key"]
+            #需要填写你的 Access Key 和 Secret Key
+            access_key = data["access_key"]
+            secret_key = data["secret_key"]
 
-        #构建鉴权对象
-        q = Auth(access_key, secret_key)
+            #构建鉴权对象
+            q = Auth(access_key, secret_key)
 
-        #要上传的空间
-        bucket_name = data["bucket_name"]
+            #要上传的空间
+            bucket_name = data["bucket_name"]
 
-        #上传后保存的文件名
-        key = data["path"]
+            #上传后保存的文件名
+            key = data["path"]
 
-        #生成上传 Token，可以指定过期时间等
-        token = q.upload_token(bucket_name, key, 3600)
+            #生成上传 Token，可以指定过期时间等
+            token = q.upload_token(bucket_name, key, 3600)
 
-        #要上传文件的本地路径
-        localfile = data["localfile"]
+            #要上传文件的本地路径
+            localfile = data["localfile"]
 
-        ret, info = put_file(token, key, localfile, version='v1') 
-        print(info)
-        assert ret['key'] == key
-        assert ret['hash'] == etag(localfile)
-        logger.info("云备份成功！")
+            ret, info = put_file(token, key, localfile, version='v1') 
+            print(info)
+            assert ret['key'] == key
+            assert ret['hash'] == etag(localfile)
+            logger.info("云备份成功！")
+
+        except:
+            logger.error("云备份失败！")
