@@ -255,7 +255,7 @@ async def _(event: GroupMessageEvent):
                 url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
                 data = (await AsyncHttpx.get(url, timeout=5)).json()
                 _fudu_list.clear(event.group_id)
-                await fudu.finish(data["msg"])
+                await fudu.finish(f'{data["author"]}：{data["msg"]}')
                 flush = gc.collect()
                 logger.info(f"已成功清理内存：{flush}")
             else:
@@ -354,29 +354,39 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 
 # message_back = on_notice(rule=handle_rule, priority=50)
 
-@scheduler.scheduled_job(
-    "cron",
-    year=2024,
-    month=12,
-    day=31,
-    hour=23,
-    minute=55,
-)
-async def _():
-    bot = get_bot()
-    await bot.send_group_msg(group_id="932044296", message="马上就是2025年了，感恩大家2024年对我的忽视，我很喜欢这个群，大家都各聊各的，没人鸟我 我也不想鸟你们，很温馨的一个圈子，我很欣慰。我删了很多群，唯独你们舍不得删，因为大家都展现出真实的自己，色情 装逼 矫情 贪婪 伪善 两面三刀 笑里藏刀 道貌岸然 自私 虚荣 狡诈 虚伪 冷漠 龌龊 卑鄙 见利忘义 嫌贫爱富 厚颜无耻 阴阳怪气。希望大家继续加油 我会一直和你们耗下去 你们这群叼毛。")
-    await asyncio.sleep(60)
-    await bot.send_group_msg(group_id="932044296", message="大过年的，不会还有人加班吧？哥们儿提前下班辣！明年见叼毛们")
-    await bot.send_group_msg(group_id="932044296", message="@小丑竟是我自己")
-    os.system("pm2 stop bot")
+# @scheduler.scheduled_job(
+#     "cron",
+#     year=2024,
+#     month=12,
+#     day=31,
+#     hour=23,
+#     minute=55,
+# )
+# async def _():
+#     bot = get_bot()
+#     await bot.send_group_msg(group_id="932044296", message="马上就是2025年了，感恩大家2024年对我的忽视，我很喜欢这个群，大家都各聊各的，没人鸟我 我也不想鸟你们，很温馨的一个圈子，我很欣慰。我删了很多群，唯独你们舍不得删，因为大家都展现出真实的自己，色情 装逼 矫情 贪婪 伪善 两面三刀 笑里藏刀 道貌岸然 自私 虚荣 狡诈 虚伪 冷漠 龌龊 卑鄙 见利忘义 嫌贫爱富 厚颜无耻 阴阳怪气。希望大家继续加油 我会一直和你们耗下去 你们这群叼毛。")
+#     await asyncio.sleep(60)
+#     await bot.send_group_msg(group_id="932044296", message="大过年的，不会还有人加班吧？哥们儿提前下班辣！明年见叼毛们")
+#     await bot.send_group_msg(group_id="932044296", message="@小丑竟是我自己")
+#     os.system("pm2 stop bot")
+
+# @scheduler.scheduled_job(
+#     "cron",
+#     year=2025,
+#     month=1,
+#     day=1,
+#     hour=8,
+# )
+# async def _():
+#     bot = get_bot()
+#     await bot.send_group_msg(group_id="932044296", message="早上好，楠桐们！今天的加班乐透，最后结果是满打满算的整整十二小时！")
 
 @scheduler.scheduled_job(
     "cron",
-    year=2025,
-    month=1,
-    day=1,
-    hour=8,
+    day_of_week=6,
+    hour=23,
+    minute=59,
 )
 async def _():
     bot = get_bot()
-    await bot.send_group_msg(group_id="932044296", message="早上好，楠桐们！今天的加班乐透，最后结果是满打满算的整整十二小时！")
+    await bot.send_group_msg(group_id="932044296", message=image("scu/easter_egg/" + "每周礼包.jpg"))
