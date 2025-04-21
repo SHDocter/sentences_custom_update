@@ -277,7 +277,7 @@ async def _(event: GroupMessageEvent):
                 url = "https://ana.nya-wsl.cn/nicegui/ana/gay/json"
                 data = (await AsyncHttpx.get(url, timeout=5)).json()
                 _fudu_list.clear(event.group_id)
-                await fudu.finish(data["msg"])
+                await fudu.finish(f'{data["author"]}：{data["msg"]}')
                 flush = gc.collect()
                 logger.info(f"已成功清理内存：{flush}")
             else:
